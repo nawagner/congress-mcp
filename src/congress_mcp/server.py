@@ -2,9 +2,9 @@
 
 from fastmcp import FastMCP
 
-from .config import Config
-from .resources import register_all_resources
-from .tools import register_all_tools
+from congress_mcp.config import Config
+from congress_mcp.resources import register_all_resources
+from congress_mcp.tools import register_all_tools
 
 # Initialize configuration from environment
 config = Config.from_env()
