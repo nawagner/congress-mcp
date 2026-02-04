@@ -27,13 +27,26 @@ def register_amendment_tools(mcp: "FastMCP", config: Config) -> None:
     ) -> dict[str, Any]:
         """List all amendments for a specific Congress.
 
-        Returns House and Senate amendments with basic metadata.
+        Returns House and Senate amendments with full details including
+        sponsor, purpose, and actions.
         """
         async with CongressClient(config) as client:
-            return await client.get(
+            response = await client.get(
                 f"/amendment/{congress}",
                 limit=limit,
                 offset=offset,
+            )
+
+            def build_endpoint(item: dict[str, Any]) -> str:
+                amdt_type = item.get("type", "").lower()
+                amdt_number = item.get("number", "")
+                return f"/amendment/{congress}/{amdt_type}/{amdt_number}"
+
+            return await client.enrich_list_response(
+                response,
+                result_key="amendments",
+                detail_key="amendment",
+                build_endpoint=build_endpoint,
             )
 
     @mcp.tool()
@@ -50,7 +63,7 @@ def register_amendment_tools(mcp: "FastMCP", config: Config) -> None:
         ] = None,
         offset: Annotated[int, Field(description="Starting position for pagination", ge=0)] = 0,
     ) -> dict[str, Any]:
-        """List amendments filtered by type.
+        """List amendments filtered by type with full details.
 
         Amendment types:
         - hamdt: House Amendment
@@ -58,10 +71,21 @@ def register_amendment_tools(mcp: "FastMCP", config: Config) -> None:
         - suamdt: Senate Unprinted Amendment
         """
         async with CongressClient(config) as client:
-            return await client.get(
+            response = await client.get(
                 f"/amendment/{congress}/{amendment_type.value}",
                 limit=limit,
                 offset=offset,
+            )
+
+            def build_endpoint(item: dict[str, Any]) -> str:
+                amdt_number = item.get("number", "")
+                return f"/amendment/{congress}/{amendment_type.value}/{amdt_number}"
+
+            return await client.enrich_list_response(
+                response,
+                result_key="amendments",
+                detail_key="amendment",
+                build_endpoint=build_endpoint,
             )
 
     @mcp.tool()

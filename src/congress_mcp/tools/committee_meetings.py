@@ -28,14 +28,25 @@ def register_committee_meeting_tools(mcp: "FastMCP", config: Config) -> None:
     ) -> dict[str, Any]:
         """List committee meetings by Congress and chamber.
 
-        Returns scheduled and past committee meetings including
-        hearings, markups, and business meetings.
+        Returns scheduled and past committee meetings with full details including
+        title, date, time, location, committee, agenda, and related documents.
         """
         async with CongressClient(config) as client:
-            return await client.get(
+            response = await client.get(
                 f"/committee-meeting/{congress}/{chamber.value}",
                 limit=limit,
                 offset=offset,
+            )
+
+            def build_endpoint(item: dict[str, Any]) -> str:
+                event_id = item.get("eventId", "")
+                return f"/committee-meeting/{congress}/{chamber.value}/{event_id}"
+
+            return await client.enrich_list_response(
+                response,
+                result_key="committeeMeetings",
+                detail_key="committeeMeeting",
+                build_endpoint=build_endpoint,
             )
 
     @mcp.tool()

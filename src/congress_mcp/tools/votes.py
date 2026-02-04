@@ -25,15 +25,26 @@ def register_vote_tools(mcp: "FastMCP", config: Config) -> None:
         ] = None,
         offset: Annotated[int, Field(description="Starting position for pagination", ge=0)] = 0,
     ) -> dict[str, Any]:
-        """List House roll call votes for a Congress and session.
+        """List House roll call votes for a Congress and session with full details.
 
-        Returns House floor votes with vote number, date, question, and result.
+        Returns House floor votes with vote counts, question, result, and date.
         """
         async with CongressClient(config) as client:
-            return await client.get(
+            response = await client.get(
                 f"/house-vote/{congress}/{session}",
                 limit=limit,
                 offset=offset,
+            )
+
+            def build_endpoint(item: dict[str, Any]) -> str:
+                roll_call = item.get("rollCallNumber", "")
+                return f"/house-vote/{congress}/{session}/{roll_call}"
+
+            return await client.enrich_list_response(
+                response,
+                result_key="houseVotes",
+                detail_key="houseVote",
+                build_endpoint=build_endpoint,
             )
 
     @mcp.tool()

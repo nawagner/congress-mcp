@@ -43,15 +43,27 @@ def register_congressional_record_tools(mcp: "FastMCP", config: Config) -> None:
         ] = None,
         offset: Annotated[int, Field(description="Starting position for pagination", ge=0)] = 0,
     ) -> dict[str, Any]:
-        """List daily Congressional Record issues by volume.
+        """List daily Congressional Record issues by volume with full details.
 
-        Each Congress typically spans two volumes.
+        Each Congress typically spans two volumes. Returns full issue
+        details including date and sections.
         """
         async with CongressClient(config) as client:
-            return await client.get(
+            response = await client.get(
                 f"/daily-congressional-record/{volume_number}",
                 limit=limit,
                 offset=offset,
+            )
+
+            def build_endpoint(item: dict[str, Any]) -> str:
+                issue_number = item.get("issueNumber", "")
+                return f"/daily-congressional-record/{volume_number}/{issue_number}"
+
+            return await client.enrich_list_response(
+                response,
+                result_key="dailyCongressionalRecord",
+                detail_key="dailyCongressionalRecord",
+                build_endpoint=build_endpoint,
             )
 
     @mcp.tool()

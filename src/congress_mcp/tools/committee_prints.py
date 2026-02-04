@@ -26,16 +26,27 @@ def register_committee_print_tools(mcp: "FastMCP", config: Config) -> None:
         ] = None,
         offset: Annotated[int, Field(description="Starting position for pagination", ge=0)] = 0,
     ) -> dict[str, Any]:
-        """List committee prints by Congress and chamber.
+        """List committee prints by Congress and chamber with full details.
 
         Committee prints are documents published by committees that are
         not reports, such as studies, compilations, and research materials.
         """
         async with CongressClient(config) as client:
-            return await client.get(
+            response = await client.get(
                 f"/committee-print/{congress}/{chamber.value}",
                 limit=limit,
                 offset=offset,
+            )
+
+            def build_endpoint(item: dict[str, Any]) -> str:
+                jacket_number = item.get("jacketNumber", "")
+                return f"/committee-print/{congress}/{chamber.value}/{jacket_number}"
+
+            return await client.enrich_list_response(
+                response,
+                result_key="committeePrints",
+                detail_key="committeePrint",
+                build_endpoint=build_endpoint,
             )
 
     @mcp.tool()

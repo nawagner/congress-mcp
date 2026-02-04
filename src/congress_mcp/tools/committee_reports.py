@@ -29,7 +29,7 @@ def register_committee_report_tools(mcp: "FastMCP", config: Config) -> None:
         ] = None,
         offset: Annotated[int, Field(description="Starting position for pagination", ge=0)] = 0,
     ) -> dict[str, Any]:
-        """List committee reports by Congress and type.
+        """List committee reports by Congress and type with full details.
 
         Report types:
         - hrpt: House Report
@@ -37,10 +37,21 @@ def register_committee_report_tools(mcp: "FastMCP", config: Config) -> None:
         - erpt: Executive Report (Senate only)
         """
         async with CongressClient(config) as client:
-            return await client.get(
+            response = await client.get(
                 f"/committee-report/{congress}/{report_type.value}",
                 limit=limit,
                 offset=offset,
+            )
+
+            def build_endpoint(item: dict[str, Any]) -> str:
+                report_number = item.get("number", "")
+                return f"/committee-report/{congress}/{report_type.value}/{report_number}"
+
+            return await client.enrich_list_response(
+                response,
+                result_key="committeeReports",
+                detail_key="committeeReport",
+                build_endpoint=build_endpoint,
             )
 
     @mcp.tool()

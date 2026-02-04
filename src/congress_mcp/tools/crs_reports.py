@@ -23,14 +23,25 @@ def register_crs_report_tools(mcp: "FastMCP", config: Config) -> None:
         ] = None,
         offset: Annotated[int, Field(description="Starting position for pagination", ge=0)] = 0,
     ) -> dict[str, Any]:
-        """List Congressional Research Service (CRS) reports.
+        """List Congressional Research Service (CRS) reports with full details.
 
         CRS reports are authoritative, nonpartisan analyses of legislative
-        issues prepared for members of Congress. Topics cover a wide range
-        of public policy areas.
+        issues prepared for members of Congress. Returns full report details
+        including title, authors, summary, and text links.
         """
         async with CongressClient(config) as client:
-            return await client.get("/crsreport", limit=limit, offset=offset)
+            response = await client.get("/crsreport", limit=limit, offset=offset)
+
+            def build_endpoint(item: dict[str, Any]) -> str:
+                report_number = item.get("reportNumber", "")
+                return f"/crsreport/{report_number}"
+
+            return await client.enrich_list_response(
+                response,
+                result_key="crsReports",
+                detail_key="crsReport",
+                build_endpoint=build_endpoint,
+            )
 
     @mcp.tool()
     async def get_crs_report(

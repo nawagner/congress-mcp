@@ -24,16 +24,27 @@ def register_nomination_tools(mcp: "FastMCP", config: Config) -> None:
         ] = None,
         offset: Annotated[int, Field(description="Starting position for pagination", ge=0)] = 0,
     ) -> dict[str, Any]:
-        """List presidential nominations for a specific Congress.
+        """List presidential nominations for a specific Congress with full details.
 
         Returns nominations submitted to the Senate for confirmation,
-        including judicial, executive, and military nominations.
+        including nominee info, position, organization, and current status.
         """
         async with CongressClient(config) as client:
-            return await client.get(
+            response = await client.get(
                 f"/nomination/{congress}",
                 limit=limit,
                 offset=offset,
+            )
+
+            def build_endpoint(item: dict[str, Any]) -> str:
+                nomination_number = item.get("number", "")
+                return f"/nomination/{congress}/{nomination_number}"
+
+            return await client.enrich_list_response(
+                response,
+                result_key="nominations",
+                detail_key="nomination",
+                build_endpoint=build_endpoint,
             )
 
     @mcp.tool()

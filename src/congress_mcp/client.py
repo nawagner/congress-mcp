@@ -1,5 +1,6 @@
 """Async HTTP client with authentication and auto-pagination for Congress.gov API."""
 
+import asyncio
 from typing import Any
 
 import httpx
@@ -185,3 +186,83 @@ class CongressClient:
                     return value
 
         return []
+
+    async def fetch_details_concurrent(
+        self,
+        endpoints: list[str],
+        max_concurrent: int = 25,
+    ) -> list[dict[str, Any]]:
+        """Fetch multiple detail endpoints concurrently.
+
+        Args:
+            endpoints: List of API endpoint paths to fetch
+            max_concurrent: Maximum number of concurrent requests (default: 25)
+
+        Returns:
+            List of successful responses (failed requests are omitted)
+        """
+        # Limit to max_concurrent endpoints
+        endpoints_to_fetch = endpoints[:max_concurrent]
+
+        async def safe_get(endpoint: str) -> dict[str, Any] | None:
+            """Fetch endpoint, returning None on error."""
+            try:
+                return await self.get(endpoint)
+            except Exception:
+                return None
+
+        tasks = [safe_get(endpoint) for endpoint in endpoints_to_fetch]
+        results = await asyncio.gather(*tasks)
+
+        # Filter out None results (failed fetches)
+        return [r for r in results if r is not None]
+
+    async def enrich_list_response(
+        self,
+        list_response: dict[str, Any],
+        result_key: str,
+        detail_key: str,
+        build_endpoint: callable,
+        max_concurrent: int = 25,
+    ) -> dict[str, Any]:
+        """Enrich a list response by fetching details for each item.
+
+        Args:
+            list_response: The original list API response
+            result_key: Key containing the list items (e.g., "hearings")
+            detail_key: Key in detail response containing the item data (e.g., "hearing")
+            build_endpoint: Function that takes a list item and returns the detail endpoint
+            max_concurrent: Maximum concurrent detail fetches (default: 25)
+
+        Returns:
+            The list response with items enriched with detail data
+        """
+        items = list_response.get(result_key, [])
+        if not items:
+            return list_response
+
+        # Build endpoints for each item
+        endpoints = [build_endpoint(item) for item in items[:max_concurrent]]
+
+        # Fetch all details concurrently
+        details = await self.fetch_details_concurrent(endpoints, max_concurrent)
+
+        # Create a map of endpoint -> detail data for merging
+        detail_map: dict[str, dict[str, Any]] = {}
+        for endpoint, detail_response in zip(endpoints, details):
+            if detail_response and detail_key in detail_response:
+                detail_map[endpoint] = detail_response[detail_key]
+
+        # Merge detail data into list items
+        enriched_items = []
+        for i, item in enumerate(items):
+            if i < len(endpoints) and endpoints[i] in detail_map:
+                # Merge detail data into the item (detail data takes precedence)
+                enriched_item = {**item, **detail_map[endpoints[i]]}
+            else:
+                enriched_item = item
+            enriched_items.append(enriched_item)
+
+        # Return updated response
+        list_response[result_key] = enriched_items
+        return list_response

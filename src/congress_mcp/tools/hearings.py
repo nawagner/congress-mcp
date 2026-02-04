@@ -28,13 +28,25 @@ def register_hearing_tools(mcp: "FastMCP", config: Config) -> None:
     ) -> dict[str, Any]:
         """List congressional hearings by Congress and chamber.
 
-        Returns published hearing transcripts and related information.
+        Returns published hearing transcripts with full details including
+        title, date, committee, and document links.
         """
         async with CongressClient(config) as client:
-            return await client.get(
+            response = await client.get(
                 f"/hearing/{congress}/{chamber.value}",
                 limit=limit,
                 offset=offset,
+            )
+
+            def build_endpoint(item: dict[str, Any]) -> str:
+                jacket_number = item.get("jacketNumber", "")
+                return f"/hearing/{congress}/{chamber.value}/{jacket_number}"
+
+            return await client.enrich_list_response(
+                response,
+                result_key="hearings",
+                detail_key="hearing",
+                build_endpoint=build_endpoint,
             )
 
     @mcp.tool()
