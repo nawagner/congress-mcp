@@ -23,15 +23,26 @@ def register_congress_tools(mcp: "FastMCP", config: Config) -> None:
         ] = None,
         offset: Annotated[int, Field(description="Starting position for pagination", ge=0)] = 0,
     ) -> dict[str, Any]:
-        """List all Congresses.
+        """List all Congresses with full details.
 
         Returns information about each Congress including number,
-        name, start/end dates, and sessions.
+        name, start/end dates, sessions, and related links.
 
         Note: The 1st Congress began in 1789. Each Congress spans two years.
         """
         async with CongressClient(config) as client:
-            return await client.get("/congress", limit=limit, offset=offset)
+            response = await client.get("/congress", limit=limit, offset=offset)
+
+            def build_endpoint(item: dict[str, Any]) -> str:
+                congress_number = item.get("number", "")
+                return f"/congress/{congress_number}"
+
+            return await client.enrich_list_response(
+                response,
+                result_key="congresses",
+                detail_key="congress",
+                build_endpoint=build_endpoint,
+            )
 
     @mcp.tool()
     async def get_congress(

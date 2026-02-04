@@ -27,13 +27,27 @@ def register_treaty_tools(mcp: "FastMCP", config: Config) -> None:
         ] = None,
         offset: Annotated[int, Field(description="Starting position for pagination", ge=0)] = 0,
     ) -> dict[str, Any]:
-        """List treaties submitted to the Senate.
+        """List treaties submitted to the Senate with full details.
 
         Treaties require a two-thirds vote in the Senate for ratification.
+        Returns treaty details including title, countries, date transmitted,
+        and current status.
         """
         async with CongressClient(config) as client:
             endpoint = f"/treaty/{congress}" if congress else "/treaty"
-            return await client.get(endpoint, limit=limit, offset=offset)
+            response = await client.get(endpoint, limit=limit, offset=offset)
+
+            def build_endpoint(item: dict[str, Any]) -> str:
+                item_congress = item.get("congress", congress or "")
+                treaty_number = item.get("number", "")
+                return f"/treaty/{item_congress}/{treaty_number}"
+
+            return await client.enrich_list_response(
+                response,
+                result_key="treaties",
+                detail_key="treaty",
+                build_endpoint=build_endpoint,
+            )
 
     @mcp.tool()
     async def get_treaty(

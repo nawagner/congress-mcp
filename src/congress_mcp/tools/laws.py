@@ -25,15 +25,28 @@ def register_law_tools(mcp: "FastMCP", config: Config) -> None:
         ] = None,
         offset: Annotated[int, Field(description="Starting position for pagination", ge=0)] = 0,
     ) -> dict[str, Any]:
-        """List all laws enacted by a specific Congress.
+        """List all laws enacted by a specific Congress with full details.
 
-        Returns both public and private laws with basic metadata.
+        Returns both public and private laws with originating bill info,
+        enactment dates, and text links.
         """
         async with CongressClient(config) as client:
-            return await client.get(
+            response = await client.get(
                 f"/law/{congress}",
                 limit=limit,
                 offset=offset,
+            )
+
+            def build_endpoint(item: dict[str, Any]) -> str:
+                law_type = item.get("type", "").lower()
+                law_number = item.get("number", "")
+                return f"/law/{congress}/{law_type}/{law_number}"
+
+            return await client.enrich_list_response(
+                response,
+                result_key="laws",
+                detail_key="law",
+                build_endpoint=build_endpoint,
             )
 
     @mcp.tool()
@@ -48,17 +61,28 @@ def register_law_tools(mcp: "FastMCP", config: Config) -> None:
         ] = None,
         offset: Annotated[int, Field(description="Starting position for pagination", ge=0)] = 0,
     ) -> dict[str, Any]:
-        """List laws filtered by type.
+        """List laws filtered by type with full details.
 
         Law types:
         - pub: Public Law - laws that affect the general public
         - priv: Private Law - laws that affect specific individuals or entities
         """
         async with CongressClient(config) as client:
-            return await client.get(
+            response = await client.get(
                 f"/law/{congress}/{law_type.value}",
                 limit=limit,
                 offset=offset,
+            )
+
+            def build_endpoint(item: dict[str, Any]) -> str:
+                law_number = item.get("number", "")
+                return f"/law/{congress}/{law_type.value}/{law_number}"
+
+            return await client.enrich_list_response(
+                response,
+                result_key="laws",
+                detail_key="law",
+                build_endpoint=build_endpoint,
             )
 
     @mcp.tool()

@@ -36,8 +36,8 @@ def register_bill_tools(mcp: "FastMCP", config: Config) -> None:
     ) -> dict[str, Any]:
         """List all bills for a specific Congress.
 
-        Returns bills with basic metadata including number, title, type,
-        origin chamber, latest action, and update timestamp.
+        Returns bills with full details including sponsors, cosponsors,
+        committees, actions, and text versions.
         """
         async with CongressClient(config) as client:
             params: dict[str, Any] = {}
@@ -48,11 +48,23 @@ def register_bill_tools(mcp: "FastMCP", config: Config) -> None:
             if sort:
                 params["sort"] = sort
 
-            return await client.get(
+            response = await client.get(
                 f"/bill/{congress}",
                 params=params,
                 limit=limit,
                 offset=offset,
+            )
+
+            def build_endpoint(item: dict[str, Any]) -> str:
+                bill_type = item.get("type", "").lower()
+                bill_number = item.get("number", "")
+                return f"/bill/{congress}/{bill_type}/{bill_number}"
+
+            return await client.enrich_list_response(
+                response,
+                result_key="bills",
+                detail_key="bill",
+                build_endpoint=build_endpoint,
             )
 
     @mcp.tool()
@@ -71,6 +83,9 @@ def register_bill_tools(mcp: "FastMCP", config: Config) -> None:
     ) -> dict[str, Any]:
         """List bills filtered by Congress and bill type.
 
+        Returns bills with full details including sponsors, cosponsors,
+        committees, actions, and text versions.
+
         Bill types:
         - hr: House Bill
         - s: Senate Bill
@@ -82,10 +97,21 @@ def register_bill_tools(mcp: "FastMCP", config: Config) -> None:
         - sres: Senate Simple Resolution
         """
         async with CongressClient(config) as client:
-            return await client.get(
+            response = await client.get(
                 f"/bill/{congress}/{bill_type.value}",
                 limit=limit,
                 offset=offset,
+            )
+
+            def build_endpoint(item: dict[str, Any]) -> str:
+                bill_number = item.get("number", "")
+                return f"/bill/{congress}/{bill_type.value}/{bill_number}"
+
+            return await client.enrich_list_response(
+                response,
+                result_key="bills",
+                detail_key="bill",
+                build_endpoint=build_endpoint,
             )
 
     @mcp.tool()

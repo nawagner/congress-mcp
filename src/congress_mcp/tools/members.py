@@ -26,16 +26,27 @@ def register_member_tools(mcp: "FastMCP", config: Config) -> None:
             bool | None, Field(description="Filter by current membership status")
         ] = None,
     ) -> dict[str, Any]:
-        """List all members of Congress.
+        """List all members of Congress with full details.
 
-        Returns member data including bioguide ID, name, party, state,
-        and service information.
+        Returns member data including biographical info, party affiliation,
+        terms served, leadership positions, and committee assignments.
         """
         async with CongressClient(config) as client:
             params: dict[str, Any] = {}
             if current_member is not None:
                 params["currentMember"] = str(current_member).lower()
-            return await client.get("/member", params=params, limit=limit, offset=offset)
+            response = await client.get("/member", params=params, limit=limit, offset=offset)
+
+            def build_endpoint(item: dict[str, Any]) -> str:
+                bioguide_id = item.get("bioguideId", "")
+                return f"/member/{bioguide_id}"
+
+            return await client.enrich_list_response(
+                response,
+                result_key="members",
+                detail_key="member",
+                build_endpoint=build_endpoint,
+            )
 
     @mcp.tool()
     async def get_member(
@@ -100,7 +111,7 @@ def register_member_tools(mcp: "FastMCP", config: Config) -> None:
             bool | None, Field(description="Filter by current membership status")
         ] = None,
     ) -> dict[str, Any]:
-        """List members who served in a specific Congress.
+        """List members who served in a specific Congress with full details.
 
         Use current_member=true to get only current serving members,
         or current_member=false for historical members.
@@ -109,11 +120,22 @@ def register_member_tools(mcp: "FastMCP", config: Config) -> None:
             params: dict[str, Any] = {}
             if current_member is not None:
                 params["currentMember"] = str(current_member).lower()
-            return await client.get(
+            response = await client.get(
                 f"/member/congress/{congress}",
                 params=params,
                 limit=limit,
                 offset=offset,
+            )
+
+            def build_endpoint(item: dict[str, Any]) -> str:
+                bioguide_id = item.get("bioguideId", "")
+                return f"/member/{bioguide_id}"
+
+            return await client.enrich_list_response(
+                response,
+                result_key="members",
+                detail_key="member",
+                build_endpoint=build_endpoint,
             )
 
     @mcp.tool()
@@ -127,7 +149,7 @@ def register_member_tools(mcp: "FastMCP", config: Config) -> None:
             bool | None, Field(description="Filter by current membership status")
         ] = None,
     ) -> dict[str, Any]:
-        """List members from a specific state.
+        """List members from a specific state with full details.
 
         Returns both senators and representatives from the state.
         """
@@ -135,11 +157,22 @@ def register_member_tools(mcp: "FastMCP", config: Config) -> None:
             params: dict[str, Any] = {}
             if current_member is not None:
                 params["currentMember"] = str(current_member).lower()
-            return await client.get(
+            response = await client.get(
                 f"/member/{state.upper()}",
                 params=params,
                 limit=limit,
                 offset=offset,
+            )
+
+            def build_endpoint(item: dict[str, Any]) -> str:
+                bioguide_id = item.get("bioguideId", "")
+                return f"/member/{bioguide_id}"
+
+            return await client.enrich_list_response(
+                response,
+                result_key="members",
+                detail_key="member",
+                build_endpoint=build_endpoint,
             )
 
     @mcp.tool()
@@ -156,7 +189,7 @@ def register_member_tools(mcp: "FastMCP", config: Config) -> None:
             bool | None, Field(description="Filter by current membership status")
         ] = None,
     ) -> dict[str, Any]:
-        """List representatives from a specific congressional district.
+        """List representatives from a specific congressional district with full details.
 
         District 0 represents at-large representatives.
         Use list_members_by_state for senators.
@@ -165,9 +198,20 @@ def register_member_tools(mcp: "FastMCP", config: Config) -> None:
             params: dict[str, Any] = {}
             if current_member is not None:
                 params["currentMember"] = str(current_member).lower()
-            return await client.get(
+            response = await client.get(
                 f"/member/{state.upper()}/{district}",
                 params=params,
                 limit=limit,
                 offset=offset,
+            )
+
+            def build_endpoint(item: dict[str, Any]) -> str:
+                bioguide_id = item.get("bioguideId", "")
+                return f"/member/{bioguide_id}"
+
+            return await client.enrich_list_response(
+                response,
+                result_key="members",
+                detail_key="member",
+                build_endpoint=build_endpoint,
             )

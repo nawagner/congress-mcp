@@ -31,7 +31,7 @@ def register_communication_tools(mcp: "FastMCP", config: Config) -> None:
         ] = None,
         offset: Annotated[int, Field(description="Starting position for pagination", ge=0)] = 0,
     ) -> dict[str, Any]:
-        """List House communications by Congress and type.
+        """List House communications by Congress and type with full details.
 
         Communication types:
         - ec: Executive Communication
@@ -40,10 +40,21 @@ def register_communication_tools(mcp: "FastMCP", config: Config) -> None:
         - ml: Memorial
         """
         async with CongressClient(config) as client:
-            return await client.get(
+            response = await client.get(
                 f"/house-communication/{congress}/{communication_type.value}",
                 limit=limit,
                 offset=offset,
+            )
+
+            def build_endpoint(item: dict[str, Any]) -> str:
+                comm_number = item.get("number", "")
+                return f"/house-communication/{congress}/{communication_type.value}/{comm_number}"
+
+            return await client.enrich_list_response(
+                response,
+                result_key="houseCommunications",
+                detail_key="houseCommunication",
+                build_endpoint=build_endpoint,
             )
 
     @mcp.tool()
@@ -78,7 +89,7 @@ def register_communication_tools(mcp: "FastMCP", config: Config) -> None:
         ] = None,
         offset: Annotated[int, Field(description="Starting position for pagination", ge=0)] = 0,
     ) -> dict[str, Any]:
-        """List Senate communications by Congress and type.
+        """List Senate communications by Congress and type with full details.
 
         Communication types:
         - ec: Executive Communication
@@ -86,10 +97,21 @@ def register_communication_tools(mcp: "FastMCP", config: Config) -> None:
         - pm: Presidential Message
         """
         async with CongressClient(config) as client:
-            return await client.get(
+            response = await client.get(
                 f"/senate-communication/{congress}/{communication_type.value}",
                 limit=limit,
                 offset=offset,
+            )
+
+            def build_endpoint(item: dict[str, Any]) -> str:
+                comm_number = item.get("number", "")
+                return f"/senate-communication/{congress}/{communication_type.value}/{comm_number}"
+
+            return await client.enrich_list_response(
+                response,
+                result_key="senateCommunications",
+                detail_key="senateCommunication",
+                build_endpoint=build_endpoint,
             )
 
     @mcp.tool()

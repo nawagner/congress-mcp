@@ -24,12 +24,25 @@ def register_committee_tools(mcp: "FastMCP", config: Config) -> None:
         ] = None,
         offset: Annotated[int, Field(description="Starting position for pagination", ge=0)] = 0,
     ) -> dict[str, Any]:
-        """List all congressional committees.
+        """List all congressional committees with full details.
 
-        Returns committees from both House and Senate.
+        Returns committees from both House and Senate with membership,
+        subcommittees, and historical information.
         """
         async with CongressClient(config) as client:
-            return await client.get("/committee", limit=limit, offset=offset)
+            response = await client.get("/committee", limit=limit, offset=offset)
+
+            def build_endpoint(item: dict[str, Any]) -> str:
+                chamber = item.get("chamber", "").lower()
+                system_code = item.get("systemCode", "")
+                return f"/committee/{chamber}/{system_code}"
+
+            return await client.enrich_list_response(
+                response,
+                result_key="committees",
+                detail_key="committee",
+                build_endpoint=build_endpoint,
+            )
 
     @mcp.tool()
     async def list_committees_by_chamber(
@@ -39,15 +52,27 @@ def register_committee_tools(mcp: "FastMCP", config: Config) -> None:
         ] = None,
         offset: Annotated[int, Field(description="Starting position for pagination", ge=0)] = 0,
     ) -> dict[str, Any]:
-        """List committees by chamber.
+        """List committees by chamber with full details.
 
-        Returns all committees for the specified chamber.
+        Returns all committees for the specified chamber with membership,
+        subcommittees, and historical information.
         """
         async with CongressClient(config) as client:
-            return await client.get(
+            response = await client.get(
                 f"/committee/{chamber.value}",
                 limit=limit,
                 offset=offset,
+            )
+
+            def build_endpoint(item: dict[str, Any]) -> str:
+                system_code = item.get("systemCode", "")
+                return f"/committee/{chamber.value}/{system_code}"
+
+            return await client.enrich_list_response(
+                response,
+                result_key="committees",
+                detail_key="committee",
+                build_endpoint=build_endpoint,
             )
 
     @mcp.tool()
@@ -59,15 +84,26 @@ def register_committee_tools(mcp: "FastMCP", config: Config) -> None:
         ] = None,
         offset: Annotated[int, Field(description="Starting position for pagination", ge=0)] = 0,
     ) -> dict[str, Any]:
-        """List committees for a specific Congress and chamber.
+        """List committees for a specific Congress and chamber with full details.
 
         Committee membership and structure may vary by Congress.
         """
         async with CongressClient(config) as client:
-            return await client.get(
+            response = await client.get(
                 f"/committee/{congress}/{chamber.value}",
                 limit=limit,
                 offset=offset,
+            )
+
+            def build_endpoint(item: dict[str, Any]) -> str:
+                system_code = item.get("systemCode", "")
+                return f"/committee/{congress}/{chamber.value}/{system_code}"
+
+            return await client.enrich_list_response(
+                response,
+                result_key="committees",
+                detail_key="committee",
+                build_endpoint=build_endpoint,
             )
 
     @mcp.tool()

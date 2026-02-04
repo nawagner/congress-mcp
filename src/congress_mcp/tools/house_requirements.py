@@ -23,13 +23,25 @@ def register_house_requirement_tools(mcp: "FastMCP", config: Config) -> None:
         ] = None,
         offset: Annotated[int, Field(description="Starting position for pagination", ge=0)] = 0,
     ) -> dict[str, Any]:
-        """List House requirements.
+        """List House requirements with full details.
 
         House requirements are statutory reporting requirements that
         federal agencies must fulfill by submitting reports to Congress.
+        Returns full details including originating statute, agency, and frequency.
         """
         async with CongressClient(config) as client:
-            return await client.get("/house-requirement", limit=limit, offset=offset)
+            response = await client.get("/house-requirement", limit=limit, offset=offset)
+
+            def build_endpoint(item: dict[str, Any]) -> str:
+                req_number = item.get("number", "")
+                return f"/house-requirement/{req_number}"
+
+            return await client.enrich_list_response(
+                response,
+                result_key="houseRequirements",
+                detail_key="houseRequirement",
+                build_endpoint=build_endpoint,
+            )
 
     @mcp.tool()
     async def get_house_requirement(
