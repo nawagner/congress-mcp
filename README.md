@@ -76,33 +76,6 @@ export CONGRESS_TIMEOUT=30.0
 
 ## Usage
 
-### Running the Server
-
-```bash
-# Using the installed command
-congress-mcp
-
-# Or using FastMCP directly
-fastmcp run src/congress_mcp/server.py
-```
-
-### Claude Desktop Configuration
-
-Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json`):
-
-```json
-{
-  "mcpServers": {
-    "congress": {
-      "command": "congress-mcp",
-      "env": {
-        "CONGRESS_API_KEY": "your_api_key_here"
-      }
-    }
-  }
-}
-```
-
 ### Claude Code Configuration
 
 **Hosted server (recommended):**
@@ -119,9 +92,7 @@ claude mcp add congress-mcp --env CONGRESS_API_KEY=your_api_key
 
 ### Cursor Configuration
 
-[Click here to install in Cursor](cursor://anysphere.cursor-deeplink/mcp/install?name=congress-mcp-an&config=eyJ1cmwiOiJodHRwczovL2NvbmdyZXNzLW1jcC1hbi5mYXN0bWNwLmFwcC9tY3AifQ==)
-
-Or manually add to your Cursor MCP settings:
+Add to your Cursor MCP settings:
 
 ```json
 {
@@ -135,6 +106,16 @@ Or manually add to your Cursor MCP settings:
 
 ```bash
 codex mcp add --url https://congress-mcp-an.fastmcp.app/mcp congress-mcp-an
+```
+
+### Running the Server
+
+```bash
+# Using the installed command
+congress-mcp
+
+# Or using FastMCP directly
+fastmcp run src/congress_mcp/server.py
 ```
 
 ## Example Queries
