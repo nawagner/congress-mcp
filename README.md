@@ -105,8 +105,36 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 
 ### Claude Code Configuration
 
+**Hosted server (recommended):**
+
+```bash
+claude mcp add --scope local --transport http congress-mcp-an https://congress-mcp-an.fastmcp.app/mcp
+```
+
+**Local installation:**
+
 ```bash
 claude mcp add congress-mcp --env CONGRESS_API_KEY=your_api_key
+```
+
+### Cursor Configuration
+
+[Click here to install in Cursor](cursor://anysphere.cursor-deeplink/mcp/install?name=congress-mcp-an&config=eyJ1cmwiOiJodHRwczovL2NvbmdyZXNzLW1jcC1hbi5mYXN0bWNwLmFwcC9tY3AifQ==)
+
+Or manually add to your Cursor MCP settings:
+
+```json
+{
+  "congress-mcp-an": {
+    "url": "https://congress-mcp-an.fastmcp.app/mcp"
+  }
+}
+```
+
+### Codex Configuration
+
+```bash
+codex mcp add --url https://congress-mcp-an.fastmcp.app/mcp congress-mcp-an
 ```
 
 ## Example Queries
