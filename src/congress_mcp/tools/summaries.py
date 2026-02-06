@@ -56,7 +56,7 @@ def register_summary_tools(mcp: "FastMCP", config: Config) -> None:
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         bill_type: Annotated[
             BillType,
-            Field(description="Bill type: hr, s, hjres, sjres, hconres, sconres, hres, sres"),
+            Field(description="REQUIRED bill type string. Must be one of: hr, s, hjres, sjres, hconres, sconres, hres, sres. Example: 'hr' for H.R. bills"),
         ],
         limit: Annotated[
             int | None, Field(description="Maximum results to return (1-250)", ge=1, le=250)
