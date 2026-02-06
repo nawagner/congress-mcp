@@ -73,7 +73,7 @@ def register_bill_tools(mcp: "FastMCP", config: Config) -> None:
         bill_type: Annotated[
             BillType,
             Field(
-                description="Bill type: hr (House Bill), s (Senate Bill), hjres (House Joint Resolution), sjres (Senate Joint Resolution), hconres (House Concurrent Resolution), sconres (Senate Concurrent Resolution), hres (House Simple Resolution), sres (Senate Simple Resolution)"
+                description="REQUIRED bill type string. Must be one of: hr (House Bill), s (Senate Bill), hjres (House Joint Resolution), sjres (Senate Joint Resolution), hconres (House Concurrent Resolution), sconres (Senate Concurrent Resolution), hres (House Simple Resolution), sres (Senate Simple Resolution). Example: 'hr' for H.R. bills"
             ),
         ],
         limit: Annotated[
@@ -117,7 +117,7 @@ def register_bill_tools(mcp: "FastMCP", config: Config) -> None:
     @mcp.tool()
     async def get_bill(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
-        bill_type: Annotated[BillType, Field(description="Bill type (hr, s, hjres, etc.)")],
+        bill_type: Annotated[BillType, Field(description="REQUIRED bill type string. Must be one of: hr, s, hjres, sjres, hconres, sconres, hres, sres. Example: 'hr' for H.R. bills")],
         bill_number: Annotated[int, Field(description="Bill number", ge=1)],
     ) -> dict[str, Any]:
         """Get detailed information about a specific bill.
@@ -131,7 +131,7 @@ def register_bill_tools(mcp: "FastMCP", config: Config) -> None:
     @mcp.tool()
     async def get_bill_actions(
         congress: Annotated[int, Field(description="Congress number", ge=1, le=200)],
-        bill_type: Annotated[BillType, Field(description="Bill type")],
+        bill_type: Annotated[BillType, Field(description="REQUIRED bill type string. Must be one of: hr, s, hjres, sjres, hconres, sconres, hres, sres. Example: 'hr' for H.R. bills")],
         bill_number: Annotated[int, Field(description="Bill number", ge=1)],
         limit: Annotated[
             int | None, Field(description="Maximum results to return", ge=1, le=250)
@@ -153,7 +153,7 @@ def register_bill_tools(mcp: "FastMCP", config: Config) -> None:
     @mcp.tool()
     async def get_bill_amendments(
         congress: Annotated[int, Field(description="Congress number", ge=1, le=200)],
-        bill_type: Annotated[BillType, Field(description="Bill type")],
+        bill_type: Annotated[BillType, Field(description="REQUIRED bill type string. Must be one of: hr, s, hjres, sjres, hconres, sconres, hres, sres. Example: 'hr' for H.R. bills")],
         bill_number: Annotated[int, Field(description="Bill number", ge=1)],
         limit: Annotated[
             int | None, Field(description="Maximum results to return", ge=1, le=250)
@@ -174,7 +174,7 @@ def register_bill_tools(mcp: "FastMCP", config: Config) -> None:
     @mcp.tool()
     async def get_bill_committees(
         congress: Annotated[int, Field(description="Congress number", ge=1, le=200)],
-        bill_type: Annotated[BillType, Field(description="Bill type")],
+        bill_type: Annotated[BillType, Field(description="REQUIRED bill type string. Must be one of: hr, s, hjres, sjres, hconres, sconres, hres, sres. Example: 'hr' for H.R. bills")],
         bill_number: Annotated[int, Field(description="Bill number", ge=1)],
         limit: Annotated[
             int | None, Field(description="Maximum results to return", ge=1, le=250)
@@ -196,7 +196,7 @@ def register_bill_tools(mcp: "FastMCP", config: Config) -> None:
     @mcp.tool()
     async def get_bill_cosponsors(
         congress: Annotated[int, Field(description="Congress number", ge=1, le=200)],
-        bill_type: Annotated[BillType, Field(description="Bill type")],
+        bill_type: Annotated[BillType, Field(description="REQUIRED bill type string. Must be one of: hr, s, hjres, sjres, hconres, sconres, hres, sres. Example: 'hr' for H.R. bills")],
         bill_number: Annotated[int, Field(description="Bill number", ge=1)],
         limit: Annotated[
             int | None, Field(description="Maximum results to return", ge=1, le=250)
@@ -218,7 +218,7 @@ def register_bill_tools(mcp: "FastMCP", config: Config) -> None:
     @mcp.tool()
     async def get_bill_related_bills(
         congress: Annotated[int, Field(description="Congress number", ge=1, le=200)],
-        bill_type: Annotated[BillType, Field(description="Bill type")],
+        bill_type: Annotated[BillType, Field(description="REQUIRED bill type string. Must be one of: hr, s, hjres, sjres, hconres, sconres, hres, sres. Example: 'hr' for H.R. bills")],
         bill_number: Annotated[int, Field(description="Bill number", ge=1)],
         limit: Annotated[
             int | None, Field(description="Maximum results to return", ge=1, le=250)
@@ -240,7 +240,7 @@ def register_bill_tools(mcp: "FastMCP", config: Config) -> None:
     @mcp.tool()
     async def get_bill_subjects(
         congress: Annotated[int, Field(description="Congress number", ge=1, le=200)],
-        bill_type: Annotated[BillType, Field(description="Bill type")],
+        bill_type: Annotated[BillType, Field(description="REQUIRED bill type string. Must be one of: hr, s, hjres, sjres, hconres, sconres, hres, sres. Example: 'hr' for H.R. bills")],
         bill_number: Annotated[int, Field(description="Bill number", ge=1)],
         limit: Annotated[
             int | None, Field(description="Maximum results to return", ge=1, le=250)
@@ -261,7 +261,7 @@ def register_bill_tools(mcp: "FastMCP", config: Config) -> None:
     @mcp.tool()
     async def get_bill_summaries(
         congress: Annotated[int, Field(description="Congress number", ge=1, le=200)],
-        bill_type: Annotated[BillType, Field(description="Bill type")],
+        bill_type: Annotated[BillType, Field(description="REQUIRED bill type string. Must be one of: hr, s, hjres, sjres, hconres, sconres, hres, sres. Example: 'hr' for H.R. bills")],
         bill_number: Annotated[int, Field(description="Bill number", ge=1)],
         limit: Annotated[
             int | None, Field(description="Maximum results to return", ge=1, le=250)
@@ -283,7 +283,7 @@ def register_bill_tools(mcp: "FastMCP", config: Config) -> None:
     @mcp.tool()
     async def get_bill_text(
         congress: Annotated[int, Field(description="Congress number", ge=1, le=200)],
-        bill_type: Annotated[BillType, Field(description="Bill type")],
+        bill_type: Annotated[BillType, Field(description="REQUIRED bill type string. Must be one of: hr, s, hjres, sjres, hconres, sconres, hres, sres. Example: 'hr' for H.R. bills")],
         bill_number: Annotated[int, Field(description="Bill number", ge=1)],
         limit: Annotated[
             int | None, Field(description="Maximum results to return", ge=1, le=250)
@@ -305,7 +305,7 @@ def register_bill_tools(mcp: "FastMCP", config: Config) -> None:
     @mcp.tool()
     async def get_bill_titles(
         congress: Annotated[int, Field(description="Congress number", ge=1, le=200)],
-        bill_type: Annotated[BillType, Field(description="Bill type")],
+        bill_type: Annotated[BillType, Field(description="REQUIRED bill type string. Must be one of: hr, s, hjres, sjres, hconres, sconres, hres, sres. Example: 'hr' for H.R. bills")],
         bill_number: Annotated[int, Field(description="Bill number", ge=1)],
         limit: Annotated[
             int | None, Field(description="Maximum results to return", ge=1, le=250)
