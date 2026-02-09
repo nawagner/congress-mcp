@@ -6,6 +6,7 @@ from pydantic import Field
 
 from congress_mcp.client import CongressClient
 from congress_mcp.config import Config
+from congress_mcp.exceptions import CongressAPIError, NotFoundError
 
 try:
     from fastmcp import FastMCP
@@ -61,4 +62,11 @@ def register_crs_report_tools(mcp: "FastMCP", config: Config) -> None:
         - IF#####: In Focus briefs
         """
         async with CongressClient(config) as client:
-            return await client.get(f"/crsreport/{report_number}")
+            try:
+                return await client.get(f"/crsreport/{report_number}")
+            except CongressAPIError as e:
+                if e.status_code == 500 and "NoneType" in str(e):
+                    raise NotFoundError(
+                        f"CRS report '{report_number}' not found"
+                    ) from e
+                raise
