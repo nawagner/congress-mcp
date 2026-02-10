@@ -109,7 +109,12 @@ def register_amendment_tools(mcp: "FastMCP", config: Config) -> None:
     @mcp.tool()
     async def get_amendment_actions(
         congress: Annotated[int, Field(description="Congress number", ge=1, le=200)],
-        amendment_type: Annotated[AmendmentType, Field(description="Amendment type")],
+        amendment_type: Annotated[
+            AmendmentType,
+            Field(
+                description="Amendment type: hamdt (House), samdt (Senate), suamdt (Senate Unprinted)"
+            ),
+        ],
         amendment_number: Annotated[int, Field(description="Amendment number", ge=1)],
         limit: Annotated[
             int | None, Field(description="Maximum results to return", ge=1, le=250)
@@ -130,7 +135,12 @@ def register_amendment_tools(mcp: "FastMCP", config: Config) -> None:
     @mcp.tool()
     async def get_amendment_cosponsors(
         congress: Annotated[int, Field(description="Congress number", ge=1, le=200)],
-        amendment_type: Annotated[AmendmentType, Field(description="Amendment type")],
+        amendment_type: Annotated[
+            AmendmentType,
+            Field(
+                description="Amendment type: hamdt (House), samdt (Senate), suamdt (Senate Unprinted)"
+            ),
+        ],
         amendment_number: Annotated[int, Field(description="Amendment number", ge=1)],
         limit: Annotated[
             int | None, Field(description="Maximum results to return", ge=1, le=250)
@@ -151,7 +161,12 @@ def register_amendment_tools(mcp: "FastMCP", config: Config) -> None:
     @mcp.tool()
     async def get_amendment_amendments(
         congress: Annotated[int, Field(description="Congress number", ge=1, le=200)],
-        amendment_type: Annotated[AmendmentType, Field(description="Amendment type")],
+        amendment_type: Annotated[
+            AmendmentType,
+            Field(
+                description="Amendment type: hamdt (House), samdt (Senate), suamdt (Senate Unprinted)"
+            ),
+        ],
         amendment_number: Annotated[int, Field(description="Amendment number", ge=1)],
         limit: Annotated[
             int | None, Field(description="Maximum results to return", ge=1, le=250)
@@ -172,7 +187,12 @@ def register_amendment_tools(mcp: "FastMCP", config: Config) -> None:
     @mcp.tool()
     async def get_amendment_text(
         congress: Annotated[int, Field(description="Congress number", ge=1, le=200)],
-        amendment_type: Annotated[AmendmentType, Field(description="Amendment type")],
+        amendment_type: Annotated[
+            AmendmentType,
+            Field(
+                description="Amendment type: hamdt (House), samdt (Senate), suamdt (Senate Unprinted)"
+            ),
+        ],
         amendment_number: Annotated[int, Field(description="Amendment number", ge=1)],
     ) -> dict[str, Any]:
         """Get text versions of an amendment.

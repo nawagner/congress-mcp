@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-MCP server providing access to U.S. Congress data via the Congress.gov API v3. Built with FastMCP and Pydantic.
+MCP server providing access to U.S. Congress data via the [Congress.gov API v3](https://api.congress.gov/). Built with FastMCP and Pydantic.
 
 ## Tech Stack
 
