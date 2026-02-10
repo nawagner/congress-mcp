@@ -4,6 +4,7 @@ from typing import Annotated, Any
 
 from pydantic import Field
 
+from congress_mcp.annotations import READONLY_ANNOTATIONS
 from congress_mcp.client import CongressClient
 from congress_mcp.config import Config
 
@@ -16,7 +17,7 @@ except ImportError:
 def register_vote_tools(mcp: "FastMCP", config: Config) -> None:
     """Register all vote tools with the MCP server."""
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def list_house_votes(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         session: Annotated[int, Field(description="Session number (1 or 2)", ge=1, le=2)],
@@ -47,7 +48,7 @@ def register_vote_tools(mcp: "FastMCP", config: Config) -> None:
                 build_endpoint=build_endpoint,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_house_vote(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         session: Annotated[int, Field(description="Session number (1 or 2)", ge=1, le=2)],
@@ -65,7 +66,7 @@ def register_vote_tools(mcp: "FastMCP", config: Config) -> None:
                 f"/house-vote/{congress}/{session}/{roll_call_number}"
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_house_vote_members(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         session: Annotated[int, Field(description="Session number (1 or 2)", ge=1, le=2)],

@@ -4,6 +4,7 @@ from typing import Annotated, Any
 
 from pydantic import Field
 
+from congress_mcp.annotations import READONLY_ANNOTATIONS
 from congress_mcp.client import CongressClient
 from congress_mcp.config import Config
 from congress_mcp.types.enums import HouseCommunicationType, SenateCommunicationType
@@ -17,7 +18,7 @@ except ImportError:
 def register_communication_tools(mcp: "FastMCP", config: Config) -> None:
     """Register all communication tools with the MCP server."""
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def list_house_communications(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         communication_type: Annotated[
@@ -57,7 +58,7 @@ def register_communication_tools(mcp: "FastMCP", config: Config) -> None:
                 build_endpoint=build_endpoint,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_house_communication(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         communication_type: Annotated[
@@ -75,7 +76,7 @@ def register_communication_tools(mcp: "FastMCP", config: Config) -> None:
                 f"/house-communication/{congress}/{communication_type.value}/{communication_number}"
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def list_senate_communications(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         communication_type: Annotated[
@@ -114,7 +115,7 @@ def register_communication_tools(mcp: "FastMCP", config: Config) -> None:
                 build_endpoint=build_endpoint,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_senate_communication(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         communication_type: Annotated[

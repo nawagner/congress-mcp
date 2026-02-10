@@ -4,6 +4,7 @@ from typing import Annotated, Any
 
 from pydantic import Field
 
+from congress_mcp.annotations import READONLY_ANNOTATIONS
 from congress_mcp.client import CongressClient
 from congress_mcp.config import Config
 from congress_mcp.types.enums import Chamber
@@ -17,7 +18,7 @@ except ImportError:
 def register_committee_tools(mcp: "FastMCP", config: Config) -> None:
     """Register all committee-related tools with the MCP server."""
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def list_committees(
         limit: Annotated[
             int | None, Field(description="Maximum results to return (1-250)", ge=1, le=250)
@@ -44,7 +45,7 @@ def register_committee_tools(mcp: "FastMCP", config: Config) -> None:
                 build_endpoint=build_endpoint,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def list_committees_by_chamber(
         chamber: Annotated[Chamber, Field(description="Chamber: house or senate")],
         limit: Annotated[
@@ -75,7 +76,7 @@ def register_committee_tools(mcp: "FastMCP", config: Config) -> None:
                 build_endpoint=build_endpoint,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def list_committees_by_congress(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         chamber: Annotated[Chamber, Field(description="Chamber: house or senate")],
@@ -106,7 +107,7 @@ def register_committee_tools(mcp: "FastMCP", config: Config) -> None:
                 build_endpoint=build_endpoint,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_committee(
         chamber: Annotated[Chamber, Field(description="Chamber: house or senate")],
         committee_code: Annotated[
@@ -121,7 +122,7 @@ def register_committee_tools(mcp: "FastMCP", config: Config) -> None:
         async with CongressClient(config) as client:
             return await client.get(f"/committee/{chamber.value}/{committee_code}")
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_committee_by_congress(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         chamber: Annotated[Chamber, Field(description="Chamber: house or senate")],
@@ -136,7 +137,7 @@ def register_committee_tools(mcp: "FastMCP", config: Config) -> None:
                 f"/committee/{congress}/{chamber.value}/{committee_code}"
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_committee_bills(
         chamber: Annotated[Chamber, Field(description="Chamber: house or senate")],
         committee_code: Annotated[str, Field(description="Committee system code")],
@@ -156,7 +157,7 @@ def register_committee_tools(mcp: "FastMCP", config: Config) -> None:
                 offset=offset,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_committee_reports_list(
         chamber: Annotated[Chamber, Field(description="Chamber: house or senate")],
         committee_code: Annotated[str, Field(description="Committee system code")],
@@ -176,7 +177,7 @@ def register_committee_tools(mcp: "FastMCP", config: Config) -> None:
                 offset=offset,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_committee_nominations(
         committee_code: Annotated[str, Field(description="Senate committee system code")],
         limit: Annotated[
@@ -195,7 +196,7 @@ def register_committee_tools(mcp: "FastMCP", config: Config) -> None:
                 offset=offset,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_committee_house_communications(
         committee_code: Annotated[str, Field(description="House committee system code")],
         limit: Annotated[
@@ -215,7 +216,7 @@ def register_committee_tools(mcp: "FastMCP", config: Config) -> None:
                 offset=offset,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_committee_senate_communications(
         committee_code: Annotated[str, Field(description="Senate committee system code")],
         limit: Annotated[

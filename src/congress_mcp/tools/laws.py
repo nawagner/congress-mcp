@@ -4,6 +4,7 @@ from typing import Annotated, Any
 
 from pydantic import Field
 
+from congress_mcp.annotations import READONLY_ANNOTATIONS
 from congress_mcp.client import CongressClient
 from congress_mcp.config import Config
 from congress_mcp.types.enums import LawType
@@ -17,7 +18,7 @@ except ImportError:
 def register_law_tools(mcp: "FastMCP", config: Config) -> None:
     """Register all law-related tools with the MCP server."""
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def list_laws(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         limit: Annotated[
@@ -49,7 +50,7 @@ def register_law_tools(mcp: "FastMCP", config: Config) -> None:
                 build_endpoint=build_endpoint,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def list_laws_by_type(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         law_type: Annotated[
@@ -85,7 +86,7 @@ def register_law_tools(mcp: "FastMCP", config: Config) -> None:
                 build_endpoint=build_endpoint,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_law(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         law_type: Annotated[LawType, Field(description="Law type: pub or priv")],

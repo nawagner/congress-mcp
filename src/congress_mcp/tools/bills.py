@@ -4,6 +4,7 @@ from typing import Annotated, Any
 
 from pydantic import Field
 
+from congress_mcp.annotations import READONLY_ANNOTATIONS
 from congress_mcp.client import CongressClient
 from congress_mcp.config import Config
 from congress_mcp.types.enums import BillType
@@ -17,7 +18,7 @@ except ImportError:
 def register_bill_tools(mcp: "FastMCP", config: Config) -> None:
     """Register all bill-related tools with the MCP server."""
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def list_bills(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         limit: Annotated[
@@ -67,7 +68,7 @@ def register_bill_tools(mcp: "FastMCP", config: Config) -> None:
                 build_endpoint=build_endpoint,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def list_bills_by_type(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         bill_type: Annotated[
@@ -114,7 +115,7 @@ def register_bill_tools(mcp: "FastMCP", config: Config) -> None:
                 build_endpoint=build_endpoint,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_bill(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         bill_type: Annotated[BillType, Field(description="REQUIRED bill type string. Must be one of: hr, s, hjres, sjres, hconres, sconres, hres, sres. Example: 'hr' for H.R. bills")],
@@ -128,7 +129,7 @@ def register_bill_tools(mcp: "FastMCP", config: Config) -> None:
         async with CongressClient(config) as client:
             return await client.get(f"/bill/{congress}/{bill_type.value}/{bill_number}")
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_bill_actions(
         congress: Annotated[int, Field(description="Congress number", ge=1, le=200)],
         bill_type: Annotated[BillType, Field(description="REQUIRED bill type string. Must be one of: hr, s, hjres, sjres, hconres, sconres, hres, sres. Example: 'hr' for H.R. bills")],
@@ -150,7 +151,7 @@ def register_bill_tools(mcp: "FastMCP", config: Config) -> None:
                 offset=offset,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_bill_amendments(
         congress: Annotated[int, Field(description="Congress number", ge=1, le=200)],
         bill_type: Annotated[BillType, Field(description="REQUIRED bill type string. Must be one of: hr, s, hjres, sjres, hconres, sconres, hres, sres. Example: 'hr' for H.R. bills")],
@@ -171,7 +172,7 @@ def register_bill_tools(mcp: "FastMCP", config: Config) -> None:
                 offset=offset,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_bill_committees(
         congress: Annotated[int, Field(description="Congress number", ge=1, le=200)],
         bill_type: Annotated[BillType, Field(description="REQUIRED bill type string. Must be one of: hr, s, hjres, sjres, hconres, sconres, hres, sres. Example: 'hr' for H.R. bills")],
@@ -193,7 +194,7 @@ def register_bill_tools(mcp: "FastMCP", config: Config) -> None:
                 offset=offset,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_bill_cosponsors(
         congress: Annotated[int, Field(description="Congress number", ge=1, le=200)],
         bill_type: Annotated[BillType, Field(description="REQUIRED bill type string. Must be one of: hr, s, hjres, sjres, hconres, sconres, hres, sres. Example: 'hr' for H.R. bills")],
@@ -215,7 +216,7 @@ def register_bill_tools(mcp: "FastMCP", config: Config) -> None:
                 offset=offset,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_bill_related_bills(
         congress: Annotated[int, Field(description="Congress number", ge=1, le=200)],
         bill_type: Annotated[BillType, Field(description="REQUIRED bill type string. Must be one of: hr, s, hjres, sjres, hconres, sconres, hres, sres. Example: 'hr' for H.R. bills")],
@@ -237,7 +238,7 @@ def register_bill_tools(mcp: "FastMCP", config: Config) -> None:
                 offset=offset,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_bill_subjects(
         congress: Annotated[int, Field(description="Congress number", ge=1, le=200)],
         bill_type: Annotated[BillType, Field(description="REQUIRED bill type string. Must be one of: hr, s, hjres, sjres, hconres, sconres, hres, sres. Example: 'hr' for H.R. bills")],
@@ -258,7 +259,7 @@ def register_bill_tools(mcp: "FastMCP", config: Config) -> None:
                 offset=offset,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_bill_summaries(
         congress: Annotated[int, Field(description="Congress number", ge=1, le=200)],
         bill_type: Annotated[BillType, Field(description="REQUIRED bill type string. Must be one of: hr, s, hjres, sjres, hconres, sconres, hres, sres. Example: 'hr' for H.R. bills")],
@@ -280,7 +281,7 @@ def register_bill_tools(mcp: "FastMCP", config: Config) -> None:
                 offset=offset,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_bill_text(
         congress: Annotated[int, Field(description="Congress number", ge=1, le=200)],
         bill_type: Annotated[BillType, Field(description="REQUIRED bill type string. Must be one of: hr, s, hjres, sjres, hconres, sconres, hres, sres. Example: 'hr' for H.R. bills")],
@@ -302,7 +303,7 @@ def register_bill_tools(mcp: "FastMCP", config: Config) -> None:
                 offset=offset,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_bill_titles(
         congress: Annotated[int, Field(description="Congress number", ge=1, le=200)],
         bill_type: Annotated[BillType, Field(description="REQUIRED bill type string. Must be one of: hr, s, hjres, sjres, hconres, sconres, hres, sres. Example: 'hr' for H.R. bills")],
