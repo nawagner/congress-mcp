@@ -7,7 +7,7 @@ from pydantic import Field
 from congress_mcp.annotations import READONLY_ANNOTATIONS
 from congress_mcp.client import CongressClient
 from congress_mcp.config import Config
-from congress_mcp.types.enums import LawType
+from congress_mcp.types.enums import LawTypeLiteral
 
 try:
     from fastmcp import FastMCP
@@ -54,7 +54,7 @@ def register_law_tools(mcp: "FastMCP", config: Config) -> None:
     async def list_laws_by_type(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         law_type: Annotated[
-            LawType,
+            LawTypeLiteral,
             Field(description="Law type: pub (Public Law) or priv (Private Law)"),
         ],
         limit: Annotated[
@@ -70,14 +70,14 @@ def register_law_tools(mcp: "FastMCP", config: Config) -> None:
         """
         async with CongressClient(config) as client:
             response = await client.get(
-                f"/law/{congress}/{law_type.value}",
+                f"/law/{congress}/{law_type}",
                 limit=limit,
                 offset=offset,
             )
 
             def build_endpoint(item: dict[str, Any]) -> str:
                 law_number = item.get("number", "")
-                return f"/law/{congress}/{law_type.value}/{law_number}"
+                return f"/law/{congress}/{law_type}/{law_number}"
 
             return await client.enrich_list_response(
                 response,
@@ -89,7 +89,7 @@ def register_law_tools(mcp: "FastMCP", config: Config) -> None:
     @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_law(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
-        law_type: Annotated[LawType, Field(description="Law type: pub or priv")],
+        law_type: Annotated[LawTypeLiteral, Field(description="Law type: pub or priv")],
         law_number: Annotated[int, Field(description="Law number", ge=1)],
     ) -> dict[str, Any]:
         """Get detailed information about a specific law.
@@ -98,4 +98,4 @@ def register_law_tools(mcp: "FastMCP", config: Config) -> None:
         and links to the full text.
         """
         async with CongressClient(config) as client:
-            return await client.get(f"/law/{congress}/{law_type.value}/{law_number}")
+            return await client.get(f"/law/{congress}/{law_type}/{law_number}")

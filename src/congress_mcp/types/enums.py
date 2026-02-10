@@ -1,6 +1,13 @@
-"""Enumeration types for Congress.gov API parameters."""
+"""Enumeration types for Congress.gov API parameters.
+
+Enum classes are used for middleware validation error messages.
+Literal types are used in tool parameter signatures to produce flat
+JSON schemas without ``$ref``/``$defs`` indirection, which improves
+compatibility with LLM tool-calling clients.
+"""
 
 from enum import Enum
+from typing import Literal
 
 
 class BillType(str, Enum):
@@ -19,6 +26,9 @@ class BillType(str, Enum):
     SRES = "sres"  # Senate Simple Resolution
 
 
+BillTypeLiteral = Literal["hr", "s", "hjres", "sjres", "hconres", "sconres", "hres", "sres"]
+
+
 class AmendmentType(str, Enum):
     """Amendment type codes.
 
@@ -32,11 +42,17 @@ class AmendmentType(str, Enum):
     SUAMDT = "suamdt"
 
 
+AmendmentTypeLiteral = Literal["hamdt", "samdt", "suamdt"]
+
+
 class Chamber(str, Enum):
     """Congressional chambers."""
 
     HOUSE = "house"
     SENATE = "senate"
+
+
+ChamberLiteral = Literal["house", "senate"]
 
 
 class LawType(str, Enum):
@@ -50,6 +66,9 @@ class LawType(str, Enum):
     PRIV = "priv"
 
 
+LawTypeLiteral = Literal["pub", "priv"]
+
+
 class ReportType(str, Enum):
     """Committee report type codes.
 
@@ -61,6 +80,9 @@ class ReportType(str, Enum):
     HRPT = "hrpt"
     SRPT = "srpt"
     ERPT = "erpt"
+
+
+ReportTypeLiteral = Literal["hrpt", "srpt", "erpt"]
 
 
 class HouseCommunicationType(str, Enum):
@@ -78,6 +100,9 @@ class HouseCommunicationType(str, Enum):
     ML = "ml"
 
 
+HouseCommunicationTypeLiteral = Literal["ec", "pm", "pt", "ml"]
+
+
 class SenateCommunicationType(str, Enum):
     """Senate communication type codes.
 
@@ -89,3 +114,6 @@ class SenateCommunicationType(str, Enum):
     EC = "ec"
     POM = "pom"
     PM = "pm"
+
+
+SenateCommunicationTypeLiteral = Literal["ec", "pom", "pm"]

@@ -73,6 +73,15 @@ def _format_prescriptive_error(
             f"Please retry with one of these exact string values."
         )
 
+    if isinstance(input_value, bool):
+        example = next(iter(enum_cls)).value
+        return (
+            f"Boolean {input_value} is not valid for '{field_name}'. "
+            f"This field requires a STRING value, not a boolean. "
+            f"Must be one of: {valid}. "
+            f'Please retry with one of these exact string values (e.g. "{example}").'
+        )
+
     return (
         f"'{input_value}' is not valid for '{field_name}'. "
         f"Must be one of: {valid}. "

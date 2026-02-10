@@ -11,12 +11,19 @@ from congress_mcp.middleware import (
 )
 from congress_mcp.types.enums import (
     AmendmentType,
+    AmendmentTypeLiteral,
     BillType,
+    BillTypeLiteral,
     Chamber,
+    ChamberLiteral,
     HouseCommunicationType,
+    HouseCommunicationTypeLiteral,
     LawType,
+    LawTypeLiteral,
     ReportType,
+    ReportTypeLiteral,
     SenateCommunicationType,
+    SenateCommunicationTypeLiteral,
 )
 
 
@@ -148,6 +155,32 @@ class TestFormatPrescriptiveError:
         msg = _format_prescriptive_error("chamber", "both", "list_hearings")
         assert msg is not None
         assert "'both' is not valid" in msg
+        assert "house" in msg
+        assert "senate" in msg
+
+    # -- Boolean inputs (the exact bug reported) -----------------------------
+
+    def test_boolean_true_amendment_type(self) -> None:
+        msg = _format_prescriptive_error("amendment_type", True, "get_amendment")
+        assert msg is not None
+        assert "Boolean True" in msg
+        assert "STRING" in msg
+        assert "not a boolean" in msg
+        assert "hamdt" in msg
+        assert "samdt" in msg
+        assert "suamdt" in msg
+
+    def test_boolean_false_bill_type(self) -> None:
+        msg = _format_prescriptive_error("bill_type", False, "get_bill")
+        assert msg is not None
+        assert "Boolean False" in msg
+        assert "STRING" in msg
+        assert "hr" in msg
+
+    def test_boolean_true_chamber(self) -> None:
+        msg = _format_prescriptive_error("chamber", True, "list_hearings")
+        assert msg is not None
+        assert "Boolean True" in msg
         assert "house" in msg
         assert "senate" in msg
 
@@ -283,3 +316,43 @@ class TestEnumValidationMiddleware:
 
         with pytest.raises(RuntimeError, match="something else"):
             await middleware.on_call_tool(context, call_next)
+
+
+# ---------------------------------------------------------------------------
+# Literal type schema tests — verifying $ref elimination
+# ---------------------------------------------------------------------------
+
+
+class TestLiteralSchemaFlatness:
+    """Verify Literal types produce flat JSON schemas without $ref/$defs."""
+
+    @pytest.mark.parametrize(
+        "literal_type",
+        [
+            AmendmentTypeLiteral,
+            BillTypeLiteral,
+            ChamberLiteral,
+            LawTypeLiteral,
+            ReportTypeLiteral,
+            HouseCommunicationTypeLiteral,
+            SenateCommunicationTypeLiteral,
+        ],
+    )
+    def test_literal_schema_has_no_ref(self, literal_type: type) -> None:
+        """Literal types should produce inline enum+type, not $ref/$defs."""
+        from typing import Annotated
+
+        from pydantic import Field, TypeAdapter
+
+        from fastmcp.utilities.json_schema import compress_schema
+
+        # Simulate how FastMCP builds the tool schema
+        ta = TypeAdapter(Annotated[literal_type, Field(description="test")])
+        schema = ta.json_schema()
+        schema = compress_schema(schema, prune_titles=True)
+
+        assert "$ref" not in str(schema), f"Schema contains $ref: {schema}"
+        assert "$defs" not in schema, f"Schema contains $defs: {schema}"
+        assert "enum" in schema, f"Schema missing enum constraint: {schema}"
+        assert "type" in schema, f"Schema missing type constraint: {schema}"
+        assert schema["type"] == "string"

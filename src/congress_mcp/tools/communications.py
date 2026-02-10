@@ -7,7 +7,7 @@ from pydantic import Field
 from congress_mcp.annotations import READONLY_ANNOTATIONS
 from congress_mcp.client import CongressClient
 from congress_mcp.config import Config
-from congress_mcp.types.enums import HouseCommunicationType, SenateCommunicationType
+from congress_mcp.types.enums import HouseCommunicationTypeLiteral, SenateCommunicationTypeLiteral
 
 try:
     from fastmcp import FastMCP
@@ -22,7 +22,7 @@ def register_communication_tools(mcp: "FastMCP", config: Config) -> None:
     async def list_house_communications(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         communication_type: Annotated[
-            HouseCommunicationType,
+            HouseCommunicationTypeLiteral,
             Field(
                 description="Communication type: ec (Executive), pm (Presidential Message), pt (Petition), ml (Memorial)"
             ),
@@ -42,14 +42,14 @@ def register_communication_tools(mcp: "FastMCP", config: Config) -> None:
         """
         async with CongressClient(config) as client:
             response = await client.get(
-                f"/house-communication/{congress}/{communication_type.value}",
+                f"/house-communication/{congress}/{communication_type}",
                 limit=limit,
                 offset=offset,
             )
 
             def build_endpoint(item: dict[str, Any]) -> str:
                 comm_number = item.get("number", "")
-                return f"/house-communication/{congress}/{communication_type.value}/{comm_number}"
+                return f"/house-communication/{congress}/{communication_type}/{comm_number}"
 
             return await client.enrich_list_response(
                 response,
@@ -62,7 +62,7 @@ def register_communication_tools(mcp: "FastMCP", config: Config) -> None:
     async def get_house_communication(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         communication_type: Annotated[
-            HouseCommunicationType, Field(description="Communication type: ec, pm, pt, or ml")
+            HouseCommunicationTypeLiteral, Field(description="Communication type: ec, pm, pt, or ml")
         ],
         communication_number: Annotated[int, Field(description="Communication number", ge=1)],
     ) -> dict[str, Any]:
@@ -73,14 +73,14 @@ def register_communication_tools(mcp: "FastMCP", config: Config) -> None:
         """
         async with CongressClient(config) as client:
             return await client.get(
-                f"/house-communication/{congress}/{communication_type.value}/{communication_number}"
+                f"/house-communication/{congress}/{communication_type}/{communication_number}"
             )
 
     @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def list_senate_communications(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         communication_type: Annotated[
-            SenateCommunicationType,
+            SenateCommunicationTypeLiteral,
             Field(
                 description="Communication type: ec (Executive), pom (Petition/Memorial), pm (Presidential Message)"
             ),
@@ -99,14 +99,14 @@ def register_communication_tools(mcp: "FastMCP", config: Config) -> None:
         """
         async with CongressClient(config) as client:
             response = await client.get(
-                f"/senate-communication/{congress}/{communication_type.value}",
+                f"/senate-communication/{congress}/{communication_type}",
                 limit=limit,
                 offset=offset,
             )
 
             def build_endpoint(item: dict[str, Any]) -> str:
                 comm_number = item.get("number", "")
-                return f"/senate-communication/{congress}/{communication_type.value}/{comm_number}"
+                return f"/senate-communication/{congress}/{communication_type}/{comm_number}"
 
             return await client.enrich_list_response(
                 response,
@@ -119,7 +119,7 @@ def register_communication_tools(mcp: "FastMCP", config: Config) -> None:
     async def get_senate_communication(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         communication_type: Annotated[
-            SenateCommunicationType, Field(description="Communication type: ec, pom, or pm")
+            SenateCommunicationTypeLiteral, Field(description="Communication type: ec, pom, or pm")
         ],
         communication_number: Annotated[int, Field(description="Communication number", ge=1)],
     ) -> dict[str, Any]:
@@ -130,5 +130,5 @@ def register_communication_tools(mcp: "FastMCP", config: Config) -> None:
         """
         async with CongressClient(config) as client:
             return await client.get(
-                f"/senate-communication/{congress}/{communication_type.value}/{communication_number}"
+                f"/senate-communication/{congress}/{communication_type}/{communication_number}"
             )
