@@ -3,6 +3,7 @@
 from fastmcp import FastMCP
 
 from congress_mcp.config import Config
+from congress_mcp.middleware import EnumValidationMiddleware
 from congress_mcp.resources import register_all_resources
 from congress_mcp.tools import register_all_tools
 
@@ -40,6 +41,9 @@ Available data categories:
 - Roll call votes
 """,
 )
+
+# Add middleware for prescriptive enum validation errors
+mcp.add_middleware(EnumValidationMiddleware())
 
 # Register all tools and resources
 register_all_tools(mcp, config)
