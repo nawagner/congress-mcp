@@ -7,7 +7,7 @@ from pydantic import Field
 from congress_mcp.annotations import READONLY_ANNOTATIONS
 from congress_mcp.client import CongressClient
 from congress_mcp.config import Config
-from congress_mcp.types.enums import Chamber
+from congress_mcp.types.enums import ChamberLiteral
 
 try:
     from fastmcp import FastMCP
@@ -21,7 +21,7 @@ def register_committee_meeting_tools(mcp: "FastMCP", config: Config) -> None:
     @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def list_committee_meetings(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
-        chamber: Annotated[Chamber, Field(description="Chamber: house or senate")],
+        chamber: Annotated[ChamberLiteral, Field(description="Chamber: house or senate")],
         limit: Annotated[
             int | None, Field(description="Maximum results to return (1-250)", ge=1, le=250)
         ] = None,
@@ -34,14 +34,14 @@ def register_committee_meeting_tools(mcp: "FastMCP", config: Config) -> None:
         """
         async with CongressClient(config) as client:
             response = await client.get(
-                f"/committee-meeting/{congress}/{chamber.value}",
+                f"/committee-meeting/{congress}/{chamber}",
                 limit=limit,
                 offset=offset,
             )
 
             def build_endpoint(item: dict[str, Any]) -> str:
                 event_id = item.get("eventId", "")
-                return f"/committee-meeting/{congress}/{chamber.value}/{event_id}"
+                return f"/committee-meeting/{congress}/{chamber}/{event_id}"
 
             return await client.enrich_list_response(
                 response,
@@ -53,7 +53,7 @@ def register_committee_meeting_tools(mcp: "FastMCP", config: Config) -> None:
     @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_committee_meeting(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
-        chamber: Annotated[Chamber, Field(description="Chamber: house or senate")],
+        chamber: Annotated[ChamberLiteral, Field(description="Chamber: house or senate")],
         event_id: Annotated[str, Field(description="Meeting event ID")],
     ) -> dict[str, Any]:
         """Get detailed information about a specific committee meeting.
@@ -63,5 +63,5 @@ def register_committee_meeting_tools(mcp: "FastMCP", config: Config) -> None:
         """
         async with CongressClient(config) as client:
             return await client.get(
-                f"/committee-meeting/{congress}/{chamber.value}/{event_id}"
+                f"/committee-meeting/{congress}/{chamber}/{event_id}"
             )

@@ -7,7 +7,7 @@ from pydantic import Field
 from congress_mcp.annotations import READONLY_ANNOTATIONS
 from congress_mcp.client import CongressClient
 from congress_mcp.config import Config
-from congress_mcp.types.enums import ReportType
+from congress_mcp.types.enums import ReportTypeLiteral
 
 try:
     from fastmcp import FastMCP
@@ -22,7 +22,7 @@ def register_committee_report_tools(mcp: "FastMCP", config: Config) -> None:
     async def list_committee_reports(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         report_type: Annotated[
-            ReportType,
+            ReportTypeLiteral,
             Field(description="Report type: hrpt (House), srpt (Senate), erpt (Executive)"),
         ],
         limit: Annotated[
@@ -39,14 +39,14 @@ def register_committee_report_tools(mcp: "FastMCP", config: Config) -> None:
         """
         async with CongressClient(config) as client:
             response = await client.get(
-                f"/committee-report/{congress}/{report_type.value}",
+                f"/committee-report/{congress}/{report_type}",
                 limit=limit,
                 offset=offset,
             )
 
             def build_endpoint(item: dict[str, Any]) -> str:
                 report_number = item.get("number", "")
-                return f"/committee-report/{congress}/{report_type.value}/{report_number}"
+                return f"/committee-report/{congress}/{report_type}/{report_number}"
 
             return await client.enrich_list_response(
                 response,
@@ -58,7 +58,7 @@ def register_committee_report_tools(mcp: "FastMCP", config: Config) -> None:
     @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_committee_report(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
-        report_type: Annotated[ReportType, Field(description="Report type: hrpt, srpt, or erpt")],
+        report_type: Annotated[ReportTypeLiteral, Field(description="Report type: hrpt, srpt, or erpt")],
         report_number: Annotated[int, Field(description="Report number", ge=1)],
     ) -> dict[str, Any]:
         """Get detailed information about a specific committee report.
@@ -68,13 +68,13 @@ def register_committee_report_tools(mcp: "FastMCP", config: Config) -> None:
         """
         async with CongressClient(config) as client:
             return await client.get(
-                f"/committee-report/{congress}/{report_type.value}/{report_number}"
+                f"/committee-report/{congress}/{report_type}/{report_number}"
             )
 
     @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_committee_report_text(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
-        report_type: Annotated[ReportType, Field(description="Report type: hrpt, srpt, or erpt")],
+        report_type: Annotated[ReportTypeLiteral, Field(description="Report type: hrpt, srpt, or erpt")],
         report_number: Annotated[int, Field(description="Report number", ge=1)],
     ) -> dict[str, Any]:
         """Get text versions of a committee report.
@@ -83,5 +83,5 @@ def register_committee_report_tools(mcp: "FastMCP", config: Config) -> None:
         """
         async with CongressClient(config) as client:
             return await client.get(
-                f"/committee-report/{congress}/{report_type.value}/{report_number}/text"
+                f"/committee-report/{congress}/{report_type}/{report_number}/text"
             )
