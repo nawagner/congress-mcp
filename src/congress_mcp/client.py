@@ -1,9 +1,12 @@
 """Async HTTP client with authentication and auto-pagination for Congress.gov API."""
 
 import asyncio
+import logging
 from typing import Any
 
 import httpx
+
+logger = logging.getLogger("congress-mcp.client")
 
 from .config import Config
 from .exceptions import (
@@ -80,21 +83,38 @@ class CongressClient:
             params["limit"] = min(limit, self.config.max_limit)
         params["offset"] = offset
 
+        logger.debug("GET %s", endpoint)
         response = await self._client.get(endpoint, params=params)
 
         if response.status_code == 404:
             raise NotFoundError(f"Resource not found: {endpoint}")
         if response.status_code == 429:
+            logger.warning("Rate limit exceeded on %s", endpoint)
             raise RateLimitError()
         if response.status_code in (401, 403):
+            logger.error("Authentication failed on %s", endpoint)
             raise AuthenticationError()
         if response.status_code != 200:
+            logger.error("API error %d on %s", response.status_code, endpoint)
             raise CongressAPIError(
                 f"API error {response.status_code}: {response.text}",
                 status_code=response.status_code,
             )
 
-        return response.json()
+        data = response.json()
+
+        # Normalize pagination metadata for LLM clients
+        pagination = data.get("pagination", {})
+        if pagination:
+            total_count = pagination.get("count", 0)
+            effective_limit = params.get("limit", self.config.default_limit)
+            data["_pagination"] = {
+                "total_count": total_count,
+                "has_more": (offset + effective_limit) < total_count,
+                "next_offset": offset + effective_limit if (offset + effective_limit) < total_count else None,
+            }
+
+        return data
 
     async def get_all(
         self,

@@ -4,6 +4,7 @@ from typing import Annotated, Any
 
 from pydantic import Field
 
+from congress_mcp.annotations import READONLY_ANNOTATIONS
 from congress_mcp.client import CongressClient
 from congress_mcp.config import Config
 from congress_mcp.exceptions import CongressAPIError, NotFoundError
@@ -17,7 +18,7 @@ except ImportError:
 def register_crs_report_tools(mcp: "FastMCP", config: Config) -> None:
     """Register all CRS report tools with the MCP server."""
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def list_crs_reports(
         limit: Annotated[
             int | None, Field(description="Maximum results to return (1-250)", ge=1, le=250)
@@ -44,7 +45,7 @@ def register_crs_report_tools(mcp: "FastMCP", config: Config) -> None:
                 build_endpoint=build_endpoint,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_crs_report(
         report_number: Annotated[
             str, Field(description="CRS report number (e.g., 'R47000', 'RL33614')")

@@ -4,6 +4,7 @@ from typing import Annotated, Any
 
 from pydantic import Field
 
+from congress_mcp.annotations import READONLY_ANNOTATIONS
 from congress_mcp.client import CongressClient
 from congress_mcp.config import Config
 
@@ -16,7 +17,7 @@ except ImportError:
 def register_congressional_record_tools(mcp: "FastMCP", config: Config) -> None:
     """Register all Congressional Record tools with the MCP server."""
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def list_daily_congressional_record(
         limit: Annotated[
             int | None, Field(description="Maximum results to return (1-250)", ge=1, le=250)
@@ -35,7 +36,7 @@ def register_congressional_record_tools(mcp: "FastMCP", config: Config) -> None:
                 offset=offset,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def list_daily_congressional_record_by_volume(
         volume_number: Annotated[int, Field(description="Volume number", ge=1)],
         limit: Annotated[
@@ -66,7 +67,7 @@ def register_congressional_record_tools(mcp: "FastMCP", config: Config) -> None:
                 build_endpoint=build_endpoint,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_daily_congressional_record_issue(
         volume_number: Annotated[int, Field(description="Volume number", ge=1)],
         issue_number: Annotated[int, Field(description="Issue number", ge=1)],
@@ -80,7 +81,7 @@ def register_congressional_record_tools(mcp: "FastMCP", config: Config) -> None:
                 f"/daily-congressional-record/{volume_number}/{issue_number}"
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_daily_congressional_record_articles(
         volume_number: Annotated[int, Field(description="Volume number", ge=1)],
         issue_number: Annotated[int, Field(description="Issue number", ge=1)],
@@ -101,7 +102,7 @@ def register_congressional_record_tools(mcp: "FastMCP", config: Config) -> None:
                 offset=offset,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def list_bound_congressional_record(
         year: Annotated[
             int | None, Field(description="Year (e.g., 2023). If not provided, lists all.", ge=1873)
@@ -120,7 +121,7 @@ def register_congressional_record_tools(mcp: "FastMCP", config: Config) -> None:
             endpoint = f"/bound-congressional-record/{year}" if year else "/bound-congressional-record"
             return await client.get(endpoint, limit=limit, offset=offset)
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def list_bound_congressional_record_by_month(
         year: Annotated[int, Field(description="Year (e.g., 2023)", ge=1873)],
         month: Annotated[int, Field(description="Month (1-12)", ge=1, le=12)],
@@ -140,7 +141,7 @@ def register_congressional_record_tools(mcp: "FastMCP", config: Config) -> None:
                 offset=offset,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_bound_congressional_record_by_date(
         year: Annotated[int, Field(description="Year (e.g., 2023)", ge=1873)],
         month: Annotated[int, Field(description="Month (1-12)", ge=1, le=12)],

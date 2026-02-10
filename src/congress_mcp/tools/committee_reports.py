@@ -4,6 +4,7 @@ from typing import Annotated, Any
 
 from pydantic import Field
 
+from congress_mcp.annotations import READONLY_ANNOTATIONS
 from congress_mcp.client import CongressClient
 from congress_mcp.config import Config
 from congress_mcp.types.enums import ReportType
@@ -17,7 +18,7 @@ except ImportError:
 def register_committee_report_tools(mcp: "FastMCP", config: Config) -> None:
     """Register all committee report tools with the MCP server."""
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def list_committee_reports(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         report_type: Annotated[
@@ -54,7 +55,7 @@ def register_committee_report_tools(mcp: "FastMCP", config: Config) -> None:
                 build_endpoint=build_endpoint,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_committee_report(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         report_type: Annotated[ReportType, Field(description="Report type: hrpt, srpt, or erpt")],
@@ -70,7 +71,7 @@ def register_committee_report_tools(mcp: "FastMCP", config: Config) -> None:
                 f"/committee-report/{congress}/{report_type.value}/{report_number}"
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_committee_report_text(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         report_type: Annotated[ReportType, Field(description="Report type: hrpt, srpt, or erpt")],

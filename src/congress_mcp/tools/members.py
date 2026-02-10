@@ -4,6 +4,7 @@ from typing import Annotated, Any
 
 from pydantic import Field
 
+from congress_mcp.annotations import READONLY_ANNOTATIONS
 from congress_mcp.client import CongressClient
 from congress_mcp.config import Config
 
@@ -16,7 +17,7 @@ except ImportError:
 def register_member_tools(mcp: "FastMCP", config: Config) -> None:
     """Register all member-related tools with the MCP server."""
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def list_members(
         limit: Annotated[
             int | None, Field(description="Maximum results to return (1-250)", ge=1, le=250)
@@ -48,7 +49,7 @@ def register_member_tools(mcp: "FastMCP", config: Config) -> None:
                 build_endpoint=build_endpoint,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_member(
         bioguide_id: Annotated[
             str, Field(description="Member bioguide ID (e.g., 'P000197' for Nancy Pelosi)")
@@ -62,7 +63,7 @@ def register_member_tools(mcp: "FastMCP", config: Config) -> None:
         async with CongressClient(config) as client:
             return await client.get(f"/member/{bioguide_id}")
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_member_sponsored_legislation(
         bioguide_id: Annotated[str, Field(description="Member bioguide ID")],
         limit: Annotated[
@@ -81,7 +82,7 @@ def register_member_tools(mcp: "FastMCP", config: Config) -> None:
                 offset=offset,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_member_cosponsored_legislation(
         bioguide_id: Annotated[str, Field(description="Member bioguide ID")],
         limit: Annotated[
@@ -100,7 +101,7 @@ def register_member_tools(mcp: "FastMCP", config: Config) -> None:
                 offset=offset,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def list_members_by_congress(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         limit: Annotated[
@@ -138,7 +139,7 @@ def register_member_tools(mcp: "FastMCP", config: Config) -> None:
                 build_endpoint=build_endpoint,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def list_members_by_state(
         state: Annotated[str, Field(description="Two-letter state code (e.g., 'CA', 'NY', 'TX')")],
         limit: Annotated[
@@ -175,7 +176,7 @@ def register_member_tools(mcp: "FastMCP", config: Config) -> None:
                 build_endpoint=build_endpoint,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def list_members_by_state_and_district(
         state: Annotated[str, Field(description="Two-letter state code (e.g., 'CA')")],
         district: Annotated[

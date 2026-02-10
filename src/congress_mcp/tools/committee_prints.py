@@ -4,6 +4,7 @@ from typing import Annotated, Any
 
 from pydantic import Field
 
+from congress_mcp.annotations import READONLY_ANNOTATIONS
 from congress_mcp.client import CongressClient
 from congress_mcp.config import Config
 from congress_mcp.types.enums import Chamber
@@ -17,7 +18,7 @@ except ImportError:
 def register_committee_print_tools(mcp: "FastMCP", config: Config) -> None:
     """Register all committee print tools with the MCP server."""
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def list_committee_prints(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         chamber: Annotated[Chamber, Field(description="Chamber: house or senate")],
@@ -49,7 +50,7 @@ def register_committee_print_tools(mcp: "FastMCP", config: Config) -> None:
                 build_endpoint=build_endpoint,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_committee_print(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         chamber: Annotated[Chamber, Field(description="Chamber: house or senate")],
@@ -64,7 +65,7 @@ def register_committee_print_tools(mcp: "FastMCP", config: Config) -> None:
                 f"/committee-print/{congress}/{chamber.value}/{jacket_number}"
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_committee_print_text(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         chamber: Annotated[Chamber, Field(description="Chamber: house or senate")],

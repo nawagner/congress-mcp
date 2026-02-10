@@ -4,6 +4,7 @@ from typing import Annotated, Any
 
 from pydantic import Field
 
+from congress_mcp.annotations import READONLY_ANNOTATIONS
 from congress_mcp.client import CongressClient
 from congress_mcp.config import Config
 
@@ -16,7 +17,7 @@ except ImportError:
 def register_treaty_tools(mcp: "FastMCP", config: Config) -> None:
     """Register all treaty tools with the MCP server."""
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def list_treaties(
         congress: Annotated[
             int | None,
@@ -49,7 +50,7 @@ def register_treaty_tools(mcp: "FastMCP", config: Config) -> None:
                 build_endpoint=build_endpoint,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_treaty(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         treaty_number: Annotated[int, Field(description="Treaty number", ge=1)],
@@ -62,7 +63,7 @@ def register_treaty_tools(mcp: "FastMCP", config: Config) -> None:
         async with CongressClient(config) as client:
             return await client.get(f"/treaty/{congress}/{treaty_number}")
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_treaty_part(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         treaty_number: Annotated[int, Field(description="Treaty number", ge=1)],
@@ -78,7 +79,7 @@ def register_treaty_tools(mcp: "FastMCP", config: Config) -> None:
         async with CongressClient(config) as client:
             return await client.get(f"/treaty/{congress}/{treaty_number}/{treaty_suffix}")
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_treaty_actions(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         treaty_number: Annotated[int, Field(description="Treaty number", ge=1)],
@@ -103,7 +104,7 @@ def register_treaty_tools(mcp: "FastMCP", config: Config) -> None:
                 endpoint = f"/treaty/{congress}/{treaty_number}/actions"
             return await client.get(endpoint, limit=limit, offset=offset)
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_treaty_committees(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         treaty_number: Annotated[int, Field(description="Treaty number", ge=1)],

@@ -4,7 +4,7 @@ A Model Context Protocol (MCP) server providing comprehensive access to the offi
 
 ## Features
 
-- **74 Tools** covering all Congress.gov API endpoints
+- **84 Tools** covering all Congress.gov API endpoints
 - **8 Resources** for reference data and direct access
 - Full async support for efficient concurrent requests
 - Auto-pagination for large result sets

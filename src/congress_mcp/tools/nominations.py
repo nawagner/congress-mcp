@@ -4,6 +4,7 @@ from typing import Annotated, Any
 
 from pydantic import Field
 
+from congress_mcp.annotations import READONLY_ANNOTATIONS
 from congress_mcp.client import CongressClient
 from congress_mcp.config import Config
 
@@ -16,7 +17,7 @@ except ImportError:
 def register_nomination_tools(mcp: "FastMCP", config: Config) -> None:
     """Register all nomination tools with the MCP server."""
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def list_nominations(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         limit: Annotated[
@@ -47,7 +48,7 @@ def register_nomination_tools(mcp: "FastMCP", config: Config) -> None:
                 build_endpoint=build_endpoint,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_nomination(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         nomination_number: Annotated[int, Field(description="Nomination number", ge=1)],
@@ -60,7 +61,7 @@ def register_nomination_tools(mcp: "FastMCP", config: Config) -> None:
         async with CongressClient(config) as client:
             return await client.get(f"/nomination/{congress}/{nomination_number}")
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_nomination_nominees(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         nomination_number: Annotated[int, Field(description="Nomination number", ge=1)],
@@ -77,7 +78,7 @@ def register_nomination_tools(mcp: "FastMCP", config: Config) -> None:
         async with CongressClient(config) as client:
             return await client.get(f"/nomination/{congress}/{nomination_number}/{ordinal}")
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_nomination_actions(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         nomination_number: Annotated[int, Field(description="Nomination number", ge=1)],
@@ -98,7 +99,7 @@ def register_nomination_tools(mcp: "FastMCP", config: Config) -> None:
                 offset=offset,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_nomination_committees(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         nomination_number: Annotated[int, Field(description="Nomination number", ge=1)],
@@ -118,7 +119,7 @@ def register_nomination_tools(mcp: "FastMCP", config: Config) -> None:
                 offset=offset,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_nomination_hearings(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         nomination_number: Annotated[int, Field(description="Nomination number", ge=1)],

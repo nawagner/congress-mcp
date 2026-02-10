@@ -1,6 +1,17 @@
 """Congress.gov MCP Server entry point."""
 
+import logging
+import sys
+
 from fastmcp import FastMCP
+
+# Configure logging to stderr (required for MCP servers using stdio transport)
+logging.basicConfig(
+    stream=sys.stderr,
+    level=logging.INFO,
+    format="%(name)s - %(levelname)s - %(message)s",
+)
+logger = logging.getLogger("congress-mcp")
 
 from congress_mcp.config import Config
 from congress_mcp.middleware import EnumValidationMiddleware
@@ -52,6 +63,7 @@ register_all_resources(mcp, config)
 
 def main() -> None:
     """Run the MCP server."""
+    logger.info("Starting Congress.gov MCP server")
     mcp.run()
 
 

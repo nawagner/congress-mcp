@@ -4,6 +4,7 @@ from typing import Annotated, Any
 
 from pydantic import Field
 
+from congress_mcp.annotations import READONLY_ANNOTATIONS
 from congress_mcp.client import CongressClient
 from congress_mcp.config import Config
 
@@ -16,7 +17,7 @@ except ImportError:
 def register_congress_tools(mcp: "FastMCP", config: Config) -> None:
     """Register all Congress session tools with the MCP server."""
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def list_congresses(
         limit: Annotated[
             int | None, Field(description="Maximum results to return (1-250)", ge=1, le=250)
@@ -44,7 +45,7 @@ def register_congress_tools(mcp: "FastMCP", config: Config) -> None:
                 build_endpoint=build_endpoint,
             )
 
-    @mcp.tool()
+    @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_congress(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
     ) -> dict[str, Any]:
