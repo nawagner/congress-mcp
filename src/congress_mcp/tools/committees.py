@@ -7,7 +7,7 @@ from pydantic import Field
 from congress_mcp.annotations import READONLY_ANNOTATIONS
 from congress_mcp.client import CongressClient
 from congress_mcp.config import Config
-from congress_mcp.types.enums import Chamber
+from congress_mcp.types.enums import ChamberLiteral
 
 try:
     from fastmcp import FastMCP
@@ -47,7 +47,7 @@ def register_committee_tools(mcp: "FastMCP", config: Config) -> None:
 
     @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def list_committees_by_chamber(
-        chamber: Annotated[Chamber, Field(description="Chamber: house or senate")],
+        chamber: Annotated[ChamberLiteral, Field(description="Chamber: house or senate")],
         limit: Annotated[
             int | None, Field(description="Maximum results to return (1-250)", ge=1, le=250)
         ] = None,
@@ -60,14 +60,14 @@ def register_committee_tools(mcp: "FastMCP", config: Config) -> None:
         """
         async with CongressClient(config) as client:
             response = await client.get(
-                f"/committee/{chamber.value}",
+                f"/committee/{chamber}",
                 limit=limit,
                 offset=offset,
             )
 
             def build_endpoint(item: dict[str, Any]) -> str:
                 system_code = item.get("systemCode", "")
-                return f"/committee/{chamber.value}/{system_code}"
+                return f"/committee/{chamber}/{system_code}"
 
             return await client.enrich_list_response(
                 response,
@@ -79,7 +79,7 @@ def register_committee_tools(mcp: "FastMCP", config: Config) -> None:
     @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def list_committees_by_congress(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
-        chamber: Annotated[Chamber, Field(description="Chamber: house or senate")],
+        chamber: Annotated[ChamberLiteral, Field(description="Chamber: house or senate")],
         limit: Annotated[
             int | None, Field(description="Maximum results to return (1-250)", ge=1, le=250)
         ] = None,
@@ -91,14 +91,14 @@ def register_committee_tools(mcp: "FastMCP", config: Config) -> None:
         """
         async with CongressClient(config) as client:
             response = await client.get(
-                f"/committee/{congress}/{chamber.value}",
+                f"/committee/{congress}/{chamber}",
                 limit=limit,
                 offset=offset,
             )
 
             def build_endpoint(item: dict[str, Any]) -> str:
                 system_code = item.get("systemCode", "")
-                return f"/committee/{congress}/{chamber.value}/{system_code}"
+                return f"/committee/{congress}/{chamber}/{system_code}"
 
             return await client.enrich_list_response(
                 response,
@@ -109,7 +109,7 @@ def register_committee_tools(mcp: "FastMCP", config: Config) -> None:
 
     @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_committee(
-        chamber: Annotated[Chamber, Field(description="Chamber: house or senate")],
+        chamber: Annotated[ChamberLiteral, Field(description="Chamber: house or senate")],
         committee_code: Annotated[
             str, Field(description="Committee system code (e.g., 'hsju00' for House Judiciary)")
         ],
@@ -120,12 +120,12 @@ def register_committee_tools(mcp: "FastMCP", config: Config) -> None:
         and historical information.
         """
         async with CongressClient(config) as client:
-            return await client.get(f"/committee/{chamber.value}/{committee_code}")
+            return await client.get(f"/committee/{chamber}/{committee_code}")
 
     @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_committee_by_congress(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
-        chamber: Annotated[Chamber, Field(description="Chamber: house or senate")],
+        chamber: Annotated[ChamberLiteral, Field(description="Chamber: house or senate")],
         committee_code: Annotated[str, Field(description="Committee system code")],
     ) -> dict[str, Any]:
         """Get committee information for a specific Congress.
@@ -134,12 +134,12 @@ def register_committee_tools(mcp: "FastMCP", config: Config) -> None:
         """
         async with CongressClient(config) as client:
             return await client.get(
-                f"/committee/{congress}/{chamber.value}/{committee_code}"
+                f"/committee/{congress}/{chamber}/{committee_code}"
             )
 
     @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_committee_bills(
-        chamber: Annotated[Chamber, Field(description="Chamber: house or senate")],
+        chamber: Annotated[ChamberLiteral, Field(description="Chamber: house or senate")],
         committee_code: Annotated[str, Field(description="Committee system code")],
         limit: Annotated[
             int | None, Field(description="Maximum results to return", ge=1, le=250)
@@ -152,14 +152,14 @@ def register_committee_tools(mcp: "FastMCP", config: Config) -> None:
         """
         async with CongressClient(config) as client:
             return await client.get(
-                f"/committee/{chamber.value}/{committee_code}/bills",
+                f"/committee/{chamber}/{committee_code}/bills",
                 limit=limit,
                 offset=offset,
             )
 
     @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def get_committee_reports_list(
-        chamber: Annotated[Chamber, Field(description="Chamber: house or senate")],
+        chamber: Annotated[ChamberLiteral, Field(description="Chamber: house or senate")],
         committee_code: Annotated[str, Field(description="Committee system code")],
         limit: Annotated[
             int | None, Field(description="Maximum results to return", ge=1, le=250)
@@ -172,7 +172,7 @@ def register_committee_tools(mcp: "FastMCP", config: Config) -> None:
         """
         async with CongressClient(config) as client:
             return await client.get(
-                f"/committee/{chamber.value}/{committee_code}/reports",
+                f"/committee/{chamber}/{committee_code}/reports",
                 limit=limit,
                 offset=offset,
             )

@@ -7,7 +7,7 @@ from pydantic import Field
 from congress_mcp.annotations import READONLY_ANNOTATIONS
 from congress_mcp.client import CongressClient
 from congress_mcp.config import Config
-from congress_mcp.types.enums import BillType
+from congress_mcp.types.enums import BillTypeLiteral
 
 try:
     from fastmcp import FastMCP
@@ -56,7 +56,7 @@ def register_summary_tools(mcp: "FastMCP", config: Config) -> None:
     async def list_summaries_by_type(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         bill_type: Annotated[
-            BillType,
+            BillTypeLiteral,
             Field(description="REQUIRED bill type string. Must be one of: hr, s, hjres, sjres, hconres, sconres, hres, sres. Example: 'hr' for H.R. bills"),
         ],
         limit: Annotated[
@@ -70,7 +70,7 @@ def register_summary_tools(mcp: "FastMCP", config: Config) -> None:
         """
         async with CongressClient(config) as client:
             return await client.get(
-                f"/summaries/{congress}/{bill_type.value}",
+                f"/summaries/{congress}/{bill_type}",
                 limit=limit,
                 offset=offset,
             )
