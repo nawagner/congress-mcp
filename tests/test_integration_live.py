@@ -292,9 +292,14 @@ async def phase1_list_endpoints(client: CongressClient, ctx: dict[str, Any]) -> 
         resp, ["committeeMeetings", "0", "eventId"], FALLBACKS["event_id"]
     )
 
-    # Hearings
+    # Hearings (no chamber — both chambers)
+    await run_test(
+        client, "list_hearings (no chamber)", "Hearings", f"/hearing/{CONGRESS}"
+    )
+
+    # Hearings (with chamber filter)
     resp = await run_test(
-        client, "list_hearings", "Hearings", f"/hearing/{CONGRESS}/house"
+        client, "list_hearings (with chamber)", "Hearings", f"/hearing/{CONGRESS}/house"
     )
     ctx["hearing_jacket_number"] = extract(
         resp, ["hearings", "0", "jacketNumber"], FALLBACKS["hearing_jacket_number"]
