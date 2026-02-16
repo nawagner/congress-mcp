@@ -19,6 +19,15 @@ def register_member_tools(mcp: "FastMCP", config: Config) -> None:
 
     @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def list_members(
+        from_date: Annotated[
+            str | None, Field(description="Filter by update date start (YYYY-MM-DD)")
+        ] = None,
+        to_date: Annotated[
+            str | None, Field(description="Filter by update date end (YYYY-MM-DD)")
+        ] = None,
+        sort: Annotated[
+            str | None, Field(description="Sort order: updateDate+asc or updateDate+desc")
+        ] = None,
         limit: Annotated[
             int | None, Field(description="Maximum results to return (1-250)", ge=1, le=250)
         ] = None,
@@ -36,6 +45,12 @@ def register_member_tools(mcp: "FastMCP", config: Config) -> None:
             params: dict[str, Any] = {}
             if current_member is not None:
                 params["currentMember"] = str(current_member).lower()
+            if from_date:
+                params["fromDateTime"] = f"{from_date}T00:00:00Z"
+            if to_date:
+                params["toDateTime"] = f"{to_date}T23:59:59Z"
+            if sort:
+                params["sort"] = sort
             response = await client.get("/member", params=params, limit=limit, offset=offset)
 
             def build_endpoint(item: dict[str, Any]) -> str:
@@ -104,6 +119,15 @@ def register_member_tools(mcp: "FastMCP", config: Config) -> None:
     @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def list_members_by_congress(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
+        from_date: Annotated[
+            str | None, Field(description="Filter by update date start (YYYY-MM-DD)")
+        ] = None,
+        to_date: Annotated[
+            str | None, Field(description="Filter by update date end (YYYY-MM-DD)")
+        ] = None,
+        sort: Annotated[
+            str | None, Field(description="Sort order: updateDate+asc or updateDate+desc")
+        ] = None,
         limit: Annotated[
             int | None, Field(description="Maximum results to return", ge=1, le=250)
         ] = None,
@@ -121,6 +145,12 @@ def register_member_tools(mcp: "FastMCP", config: Config) -> None:
             params: dict[str, Any] = {}
             if current_member is not None:
                 params["currentMember"] = str(current_member).lower()
+            if from_date:
+                params["fromDateTime"] = f"{from_date}T00:00:00Z"
+            if to_date:
+                params["toDateTime"] = f"{to_date}T23:59:59Z"
+            if sort:
+                params["sort"] = sort
             response = await client.get(
                 f"/member/congress/{congress}",
                 params=params,
@@ -142,6 +172,15 @@ def register_member_tools(mcp: "FastMCP", config: Config) -> None:
     @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def list_members_by_state(
         state: Annotated[str, Field(description="Two-letter state code (e.g., 'CA', 'NY', 'TX')")],
+        from_date: Annotated[
+            str | None, Field(description="Filter by update date start (YYYY-MM-DD)")
+        ] = None,
+        to_date: Annotated[
+            str | None, Field(description="Filter by update date end (YYYY-MM-DD)")
+        ] = None,
+        sort: Annotated[
+            str | None, Field(description="Sort order: updateDate+asc or updateDate+desc")
+        ] = None,
         limit: Annotated[
             int | None, Field(description="Maximum results to return", ge=1, le=250)
         ] = None,
@@ -158,6 +197,12 @@ def register_member_tools(mcp: "FastMCP", config: Config) -> None:
             params: dict[str, Any] = {}
             if current_member is not None:
                 params["currentMember"] = str(current_member).lower()
+            if from_date:
+                params["fromDateTime"] = f"{from_date}T00:00:00Z"
+            if to_date:
+                params["toDateTime"] = f"{to_date}T23:59:59Z"
+            if sort:
+                params["sort"] = sort
             response = await client.get(
                 f"/member/{state.upper()}",
                 params=params,
@@ -182,6 +227,15 @@ def register_member_tools(mcp: "FastMCP", config: Config) -> None:
         district: Annotated[
             int, Field(description="Congressional district number (0 for at-large)", ge=0)
         ],
+        from_date: Annotated[
+            str | None, Field(description="Filter by update date start (YYYY-MM-DD)")
+        ] = None,
+        to_date: Annotated[
+            str | None, Field(description="Filter by update date end (YYYY-MM-DD)")
+        ] = None,
+        sort: Annotated[
+            str | None, Field(description="Sort order: updateDate+asc or updateDate+desc")
+        ] = None,
         limit: Annotated[
             int | None, Field(description="Maximum results to return", ge=1, le=250)
         ] = None,
@@ -199,6 +253,12 @@ def register_member_tools(mcp: "FastMCP", config: Config) -> None:
             params: dict[str, Any] = {}
             if current_member is not None:
                 params["currentMember"] = str(current_member).lower()
+            if from_date:
+                params["fromDateTime"] = f"{from_date}T00:00:00Z"
+            if to_date:
+                params["toDateTime"] = f"{to_date}T23:59:59Z"
+            if sort:
+                params["sort"] = sort
             response = await client.get(
                 f"/member/{state.upper()}/{district}",
                 params=params,

@@ -20,6 +20,12 @@ def register_nomination_tools(mcp: "FastMCP", config: Config) -> None:
     @mcp.tool(annotations=READONLY_ANNOTATIONS)
     async def list_nominations(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
+        from_date: Annotated[
+            str | None, Field(description="Filter by update date start (YYYY-MM-DD)")
+        ] = None,
+        to_date: Annotated[
+            str | None, Field(description="Filter by update date end (YYYY-MM-DD)")
+        ] = None,
         limit: Annotated[
             int | None, Field(description="Maximum results to return (1-250)", ge=1, le=250)
         ] = None,
@@ -31,8 +37,14 @@ def register_nomination_tools(mcp: "FastMCP", config: Config) -> None:
         including nominee info, position, organization, and current status.
         """
         async with CongressClient(config) as client:
+            params: dict[str, Any] = {}
+            if from_date:
+                params["fromDateTime"] = f"{from_date}T00:00:00Z"
+            if to_date:
+                params["toDateTime"] = f"{to_date}T23:59:59Z"
             response = await client.get(
                 f"/nomination/{congress}",
+                params=params,
                 limit=limit,
                 offset=offset,
             )
