@@ -47,7 +47,7 @@ async def test_list_hearings_without_chamber(client: Client):
     result = await client.call_tool(
         "list_hearings", {"congress": CONGRESS, "limit": 3}
     )
-    data = json.loads(result.data)
+    data = result.data if isinstance(result.data, dict) else json.loads(result.data)
     assert "hearings" in data
     assert len(data["hearings"]) > 0
 
@@ -58,7 +58,7 @@ async def test_list_hearings_with_chamber(client: Client):
     result = await client.call_tool(
         "list_hearings", {"congress": CONGRESS, "chamber": "house", "limit": 3}
     )
-    data = json.loads(result.data)
+    data = result.data if isinstance(result.data, dict) else json.loads(result.data)
     assert "hearings" in data
     assert len(data["hearings"]) > 0
 
@@ -69,7 +69,7 @@ async def test_list_hearings_with_senate_chamber(client: Client):
     result = await client.call_tool(
         "list_hearings", {"congress": CONGRESS, "chamber": "senate", "limit": 3}
     )
-    data = json.loads(result.data)
+    data = result.data if isinstance(result.data, dict) else json.loads(result.data)
     assert "hearings" in data
     assert len(data["hearings"]) > 0
 
@@ -80,7 +80,7 @@ async def test_list_hearings_without_chamber_enriches_details(client: Client):
     result = await client.call_tool(
         "list_hearings", {"congress": CONGRESS, "limit": 2}
     )
-    data = json.loads(result.data)
+    data = result.data if isinstance(result.data, dict) else json.loads(result.data)
     hearings = data["hearings"]
     assert len(hearings) > 0
     first = hearings[0]

@@ -77,6 +77,15 @@ def register_bill_tools(mcp: "FastMCP", config: Config) -> None:
                 description="REQUIRED bill type string. Must be one of: hr (House Bill), s (Senate Bill), hjres (House Joint Resolution), sjres (Senate Joint Resolution), hconres (House Concurrent Resolution), sconres (Senate Concurrent Resolution), hres (House Simple Resolution), sres (Senate Simple Resolution). Example: 'hr' for H.R. bills"
             ),
         ],
+        from_date: Annotated[
+            str | None, Field(description="Filter by update date start (YYYY-MM-DD)")
+        ] = None,
+        to_date: Annotated[
+            str | None, Field(description="Filter by update date end (YYYY-MM-DD)")
+        ] = None,
+        sort: Annotated[
+            str | None, Field(description="Sort order: updateDate+asc or updateDate+desc")
+        ] = None,
         limit: Annotated[
             int | None, Field(description="Maximum results to return (1-250)", ge=1, le=250)
         ] = None,
@@ -98,8 +107,16 @@ def register_bill_tools(mcp: "FastMCP", config: Config) -> None:
         - sres: Senate Simple Resolution
         """
         async with CongressClient(config) as client:
+            params: dict[str, Any] = {}
+            if from_date:
+                params["fromDateTime"] = f"{from_date}T00:00:00Z"
+            if to_date:
+                params["toDateTime"] = f"{to_date}T23:59:59Z"
+            if sort:
+                params["sort"] = sort
             response = await client.get(
                 f"/bill/{congress}/{bill_type}",
+                params=params,
                 limit=limit,
                 offset=offset,
             )
