@@ -4,7 +4,7 @@ A Model Context Protocol (MCP) server providing comprehensive access to the offi
 
 ## Features
 
-- **84 Tools** covering all Congress.gov API endpoints
+- **85 Tools** covering all Congress.gov API endpoints
 - **8 Resources** for reference data and direct access
 - Full async support for efficient concurrent requests
 - Auto-pagination for large result sets
@@ -186,6 +186,20 @@ list_treaties(congress=118)
 
 # Get treaty details
 get_treaty(congress=118, treaty_number=3)
+```
+
+### Summaries
+
+```
+# Search bill summaries by keyword (handles pagination internally)
+search_summaries(congress=118, query="artificial intelligence", bill_type="hr",
+                 from_date="2024-01-01", to_date="2024-12-31", max_matches=10)
+
+# List recent summaries
+list_summaries(limit=10)
+
+# List summaries for a specific Congress
+list_summaries_by_congress(congress=118, from_date="2024-01-01", to_date="2024-12-31")
 ```
 
 ### Votes
