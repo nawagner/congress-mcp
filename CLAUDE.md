@@ -37,6 +37,12 @@ uv run python -m congress_mcp     # Start the MCP server
 - Middleware via `mcp.add_middleware()` can intercept tool calls with `on_call_tool`
 - Enums: clients send values (`"hr"`), not names (`"HR"`); functions receive enum members
 
+## Testing
+
+- **Never use mocks.** All tests hit the live Congress.gov API via FastMCP's Client transport.
+- Test pattern: create a `FastMCP` instance, register tools, use `Client(transport=mcp)` for in-process testing.
+- Tests require `CONGRESS_API_KEY` environment variable (loaded from `.env` file).
+
 ## MCP Best Practices
 
 When improving this server, use the [MCP builder skill](https://github.com/anthropics/skills/tree/main/skills/mcp-builder) for guidance on tool design, annotations, error handling, and testing.
