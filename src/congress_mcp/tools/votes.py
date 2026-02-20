@@ -21,6 +21,9 @@ def register_vote_tools(mcp: "FastMCP", config: Config) -> None:
     async def list_house_votes(
         congress: Annotated[int, Field(description="Congress number (e.g., 118)", ge=1, le=200)],
         session: Annotated[int, Field(description="Session number (1 or 2)", ge=1, le=2)],
+        sort: Annotated[
+            str | None, Field(description="Sort order: updateDate+asc or updateDate+desc")
+        ] = None,
         limit: Annotated[
             int | None, Field(description="Maximum results to return (1-250)", ge=1, le=250)
         ] = None,
@@ -31,8 +34,12 @@ def register_vote_tools(mcp: "FastMCP", config: Config) -> None:
         Returns House floor votes with vote counts, question, result, and date.
         """
         async with CongressClient(config) as client:
+            params: dict[str, Any] = {}
+            if sort:
+                params["sort"] = sort
             response = await client.get(
                 f"/house-vote/{congress}/{session}",
+                params=params,
                 limit=limit,
                 offset=offset,
             )
