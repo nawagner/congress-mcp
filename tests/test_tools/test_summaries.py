@@ -13,7 +13,7 @@ from fastmcp import FastMCP
 from fastmcp.client import Client
 
 from congress_mcp.config import Config
-from congress_mcp.tools.summaries import register_summary_tools
+from congress_mcp.tools.summaries import _strip_html, register_summary_tools
 
 # Load .env file if present
 _env_path = Path(__file__).parent.parent.parent / ".env"
@@ -146,3 +146,123 @@ async def test_list_summaries_with_sort(client: Client):
     data = parse_result(result)
     assert data["pagination"]["count"] > 0
     assert len(data["summaries"]) > 0
+
+
+# --- _strip_html unit tests ---
+
+
+def test_strip_html_removes_tags():
+    assert _strip_html("<p>Hello <b>world</b></p>") == "Hello world"
+
+
+def test_strip_html_decodes_entities():
+    assert _strip_html("A &amp; B &lt; C") == "A & B < C"
+
+
+def test_strip_html_handles_empty():
+    assert _strip_html("") == ""
+
+
+# --- search_summaries tests ---
+
+
+@needs_api_key
+async def test_search_summaries_finds_matches(client: Client):
+    """search_summaries returns matching summaries for AI-related keyword."""
+    result = await client.call_tool(
+        "search_summaries",
+        {
+            "congress": CURRENT_CONGRESS,
+            "query": "artificial intelligence",
+            "max_matches": 5,
+        },
+    )
+    data = parse_result(result)
+    assert data["match_count"] > 0
+    assert len(data["matches"]) <= 5
+    assert data["query"] == "artificial intelligence"
+    assert data["total_summaries_searched"] > 0
+    for match in data["matches"]:
+        plain = _strip_html(match.get("text", ""))
+        assert "artificial intelligence" in plain.lower()
+
+
+@needs_api_key
+async def test_search_summaries_no_matches(client: Client):
+    """search_summaries returns empty results for a nonsense keyword."""
+    result = await client.call_tool(
+        "search_summaries",
+        {
+            "congress": CURRENT_CONGRESS,
+            "query": "xyzzyplugh42",
+            "max_matches": 5,
+        },
+    )
+    data = parse_result(result)
+    assert data["match_count"] == 0
+    assert data["matches"] == []
+    assert data["total_summaries_searched"] > 0
+
+
+@needs_api_key
+async def test_search_summaries_case_insensitive(client: Client):
+    """search_summaries is case-insensitive."""
+    result = await client.call_tool(
+        "search_summaries",
+        {
+            "congress": CURRENT_CONGRESS,
+            "query": "ARTIFICIAL INTELLIGENCE",
+            "max_matches": 3,
+        },
+    )
+    data = parse_result(result)
+    assert data["match_count"] > 0
+
+
+@needs_api_key
+async def test_search_summaries_without_bill_type(client: Client):
+    """search_summaries works without bill_type filter."""
+    result = await client.call_tool(
+        "search_summaries",
+        {
+            "congress": CURRENT_CONGRESS,
+            "query": "artificial intelligence",
+            "max_matches": 3,
+        },
+    )
+    data = parse_result(result)
+    assert data["match_count"] > 0
+    assert data["total_summaries_searched"] > 0
+
+
+@needs_api_key
+async def test_search_summaries_max_matches_respected(client: Client):
+    """search_summaries respects max_matches limit."""
+    result = await client.call_tool(
+        "search_summaries",
+        {
+            "congress": CURRENT_CONGRESS,
+            "query": "the",
+            "bill_type": "hr",
+            "max_matches": 2,
+        },
+    )
+    data = parse_result(result)
+    assert data["match_count"] <= 2
+
+
+@needs_api_key
+async def test_search_summaries_includes_bill_info(client: Client):
+    """search_summaries results include bill identifiers for follow-up."""
+    result = await client.call_tool(
+        "search_summaries",
+        {
+            "congress": CURRENT_CONGRESS,
+            "query": "artificial intelligence",
+            "max_matches": 1,
+        },
+    )
+    data = parse_result(result)
+    assert data["match_count"] > 0
+    match = data["matches"][0]
+    assert "bill" in match
