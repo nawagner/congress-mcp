@@ -211,6 +211,7 @@ async def test_search_summaries_no_matches(client: Client):
     assert data["match_count"] == 0
     assert data["matches"] == []
     assert data["total_summaries_searched"] > 0
+    assert data["search_complete"] is True
 
 
 @needs_api_key

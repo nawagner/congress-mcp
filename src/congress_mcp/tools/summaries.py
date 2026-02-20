@@ -1,8 +1,10 @@
 """Summary tools for Congress.gov API."""
 
+import logging
 import re
 from typing import Annotated, Any
 
+import httpx
 from pydantic import Field
 
 from congress_mcp.annotations import READONLY_ANNOTATIONS
@@ -14,6 +16,8 @@ try:
     from fastmcp import FastMCP
 except ImportError:
     FastMCP = Any  # type: ignore[misc, assignment]
+
+logger = logging.getLogger(__name__)
 
 _HTML_TAG_RE = re.compile(r"<[^>]+>")
 _HTML_ENTITIES = {
@@ -211,13 +215,20 @@ def register_summary_tools(mcp: "FastMCP", config: Config) -> None:
             offset = 0
             batch_size = config.max_limit
 
+            search_complete = True
+
             while True:
-                response = await client.get(
-                    endpoint,
-                    params=params,
-                    limit=batch_size,
-                    offset=offset,
-                )
+                try:
+                    response = await client.get(
+                        endpoint,
+                        params=params,
+                        limit=batch_size,
+                        offset=offset,
+                    )
+                except httpx.HTTPError as exc:
+                    logger.warning("HTTP error during search pagination: %s", exc)
+                    search_complete = False
+                    break
 
                 summaries = response.get("summaries", [])
                 total_searched += len(summaries)
@@ -245,5 +256,6 @@ def register_summary_tools(mcp: "FastMCP", config: Config) -> None:
                 "matches": matches,
                 "match_count": len(matches),
                 "total_summaries_searched": total_searched,
+                "search_complete": search_complete,
                 "query": query,
             }
