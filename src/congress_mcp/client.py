@@ -211,7 +211,7 @@ class CongressClient:
         self,
         endpoints: list[str],
         max_concurrent: int = 25,
-    ) -> list[dict[str, Any]]:
+    ) -> list[dict[str, Any] | None]:
         """Fetch multiple detail endpoints concurrently.
 
         Args:
@@ -219,7 +219,7 @@ class CongressClient:
             max_concurrent: Maximum number of concurrent requests (default: 25)
 
         Returns:
-            List of successful responses (failed requests are omitted)
+            List of responses (None for failed requests)
         """
         # Limit to max_concurrent endpoints
         endpoints_to_fetch = endpoints[:max_concurrent]
@@ -234,8 +234,7 @@ class CongressClient:
         tasks = [safe_get(endpoint) for endpoint in endpoints_to_fetch]
         results = await asyncio.gather(*tasks)
 
-        # Filter out None results (failed fetches)
-        return [r for r in results if r is not None]
+        return list(results)
 
     async def enrich_list_response(
         self,
@@ -271,7 +270,12 @@ class CongressClient:
         detail_map: dict[str, dict[str, Any]] = {}
         for endpoint, detail_response in zip(endpoints, details):
             if detail_response and detail_key in detail_response:
-                detail_map[endpoint] = detail_response[detail_key]
+                detail_data = detail_response[detail_key]
+                # Some endpoints (e.g. committee-print, treaty) return a list
+                if isinstance(detail_data, list) and detail_data:
+                    detail_data = detail_data[0]
+                if isinstance(detail_data, dict):
+                    detail_map[endpoint] = detail_data
 
         # Merge detail data into list items
         enriched_items = []

@@ -218,7 +218,6 @@ async def print_client():
 
 
 @needs_api_key
-@pytest.mark.xfail(reason="Pre-existing bug: enrich_list_response crashes on list detail data")
 async def test_list_committee_prints_with_date_filter(print_client: Client):
     """list_committee_prints returns results with date range."""
     result = await print_client.call_tool(
