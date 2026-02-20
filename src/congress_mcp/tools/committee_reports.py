@@ -31,6 +31,9 @@ def register_committee_report_tools(mcp: "FastMCP", config: Config) -> None:
         to_date: Annotated[
             str | None, Field(description="Filter by update date end (YYYY-MM-DD)")
         ] = None,
+        sort: Annotated[
+            str | None, Field(description="Sort order: updateDate+asc or updateDate+desc")
+        ] = None,
         limit: Annotated[
             int | None, Field(description="Maximum results to return (1-250)", ge=1, le=250)
         ] = None,
@@ -49,6 +52,8 @@ def register_committee_report_tools(mcp: "FastMCP", config: Config) -> None:
                 params["fromDateTime"] = f"{from_date}T00:00:00Z"
             if to_date:
                 params["toDateTime"] = f"{to_date}T23:59:59Z"
+            if sort:
+                params["sort"] = sort
             response = await client.get(
                 f"/committee-report/{congress}/{report_type}",
                 params=params,

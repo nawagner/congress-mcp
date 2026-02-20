@@ -27,6 +27,9 @@ def register_communication_tools(mcp: "FastMCP", config: Config) -> None:
                 description="Communication type: ec (Executive), pm (Presidential Message), pt (Petition), ml (Memorial)"
             ),
         ],
+        sort: Annotated[
+            str | None, Field(description="Sort order: updateDate+asc or updateDate+desc")
+        ] = None,
         limit: Annotated[
             int | None, Field(description="Maximum results to return (1-250)", ge=1, le=250)
         ] = None,
@@ -41,8 +44,12 @@ def register_communication_tools(mcp: "FastMCP", config: Config) -> None:
         - ml: Memorial
         """
         async with CongressClient(config) as client:
+            params: dict[str, Any] = {}
+            if sort:
+                params["sort"] = sort
             response = await client.get(
                 f"/house-communication/{congress}/{communication_type}",
+                params=params,
                 limit=limit,
                 offset=offset,
             )
@@ -85,6 +92,9 @@ def register_communication_tools(mcp: "FastMCP", config: Config) -> None:
                 description="Communication type: ec (Executive), pom (Petition/Memorial), pm (Presidential Message)"
             ),
         ],
+        sort: Annotated[
+            str | None, Field(description="Sort order: updateDate+asc or updateDate+desc")
+        ] = None,
         limit: Annotated[
             int | None, Field(description="Maximum results to return (1-250)", ge=1, le=250)
         ] = None,
@@ -98,8 +108,12 @@ def register_communication_tools(mcp: "FastMCP", config: Config) -> None:
         - pm: Presidential Message
         """
         async with CongressClient(config) as client:
+            params: dict[str, Any] = {}
+            if sort:
+                params["sort"] = sort
             response = await client.get(
                 f"/senate-communication/{congress}/{communication_type}",
+                params=params,
                 limit=limit,
                 offset=offset,
             )
