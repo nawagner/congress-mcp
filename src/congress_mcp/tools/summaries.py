@@ -39,8 +39,8 @@ def register_summary_tools(mcp: "FastMCP", config: Config) -> None:
         Summaries are written by the Congressional Research Service (CRS)
         and describe bill content at various legislative stages.
 
-        Note: Date filtering (from_date/to_date) is required to get results.
-        Queries without a date range return zero results.
+        Tip: Without date filters, only a small window of recent results is returned.
+        Provide from_date/to_date for comprehensive results.
         """
         async with CongressClient(config) as client:
             params: dict[str, Any] = {}
@@ -73,8 +73,8 @@ def register_summary_tools(mcp: "FastMCP", config: Config) -> None:
 
         Returns CRS summaries for bills introduced in the specified Congress.
 
-        Note: Date filtering (from_date/to_date) is required to get results.
-        Queries without a date range return zero results.
+        Tip: Without date filters, only the current Congress returns results.
+        For past Congresses, provide from_date/to_date.
         """
         async with CongressClient(config) as client:
             params: dict[str, Any] = {}
@@ -116,8 +116,8 @@ def register_summary_tools(mcp: "FastMCP", config: Config) -> None:
 
         Returns CRS summaries for the specified type of legislation.
 
-        Note: Date filtering (from_date/to_date) is required to get results.
-        Queries without a date range return zero results.
+        Tip: Without date filters, only the current Congress returns results.
+        For past Congresses, provide from_date/to_date.
         """
         async with CongressClient(config) as client:
             params: dict[str, Any] = {}

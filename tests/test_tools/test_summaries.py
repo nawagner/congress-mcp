@@ -25,6 +25,7 @@ if _env_path.exists():
             os.environ.setdefault(key.strip(), value.strip())
 
 CONGRESS = 118
+CURRENT_CONGRESS = 119
 
 needs_api_key = pytest.mark.skipif(
     not os.environ.get("CONGRESS_API_KEY"),
@@ -48,11 +49,11 @@ async def client():
 
 
 @needs_api_key
-async def test_list_summaries_without_dates_returns_empty(client: Client):
-    """Summaries endpoint returns 0 results without date filtering."""
+async def test_list_summaries_without_dates_returns_recent(client: Client):
+    """Summaries endpoint returns a small window of recent results without dates."""
     result = await client.call_tool("list_summaries", {"limit": 1})
     data = parse_result(result)
-    assert data["pagination"]["count"] == 0
+    assert data["pagination"]["count"] > 0
 
 
 @needs_api_key
@@ -95,6 +96,39 @@ async def test_list_summaries_by_type_with_date_filter(client: Client):
     data = parse_result(result)
     assert data["pagination"]["count"] > 0
     assert len(data["summaries"]) > 0
+
+
+@needs_api_key
+async def test_list_summaries_by_congress_without_dates_past_congress(client: Client):
+    """Past congress returns 0 summaries without date filters."""
+    result = await client.call_tool(
+        "list_summaries_by_congress",
+        {"congress": CONGRESS, "limit": 1},
+    )
+    data = parse_result(result)
+    assert data["pagination"]["count"] == 0
+
+
+@needs_api_key
+async def test_list_summaries_by_congress_without_dates_current_congress(client: Client):
+    """Current congress returns results without date filters."""
+    result = await client.call_tool(
+        "list_summaries_by_congress",
+        {"congress": CURRENT_CONGRESS, "limit": 1},
+    )
+    data = parse_result(result)
+    assert data["pagination"]["count"] > 0
+
+
+@needs_api_key
+async def test_list_summaries_by_type_without_dates_current_congress(client: Client):
+    """Current congress returns results by type without date filters."""
+    result = await client.call_tool(
+        "list_summaries_by_type",
+        {"congress": CURRENT_CONGRESS, "bill_type": "hr", "limit": 1},
+    )
+    data = parse_result(result)
+    assert data["pagination"]["count"] > 0
 
 
 @needs_api_key
