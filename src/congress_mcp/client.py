@@ -225,10 +225,13 @@ class CongressClient:
         endpoints_to_fetch = endpoints[:max_concurrent]
 
         async def safe_get(endpoint: str) -> dict[str, Any] | None:
-            """Fetch endpoint, returning None on error."""
+            """Fetch endpoint, returning None on expected errors."""
             try:
                 return await self.get(endpoint)
-            except Exception:
+            except (RateLimitError, AuthenticationError):
+                raise
+            except (CongressAPIError, httpx.HTTPError) as exc:
+                logger.warning("Detail fetch failed for %s: %s", endpoint, exc)
                 return None
 
         tasks = [safe_get(endpoint) for endpoint in endpoints_to_fetch]
@@ -279,14 +282,24 @@ class CongressClient:
 
         # Merge detail data into list items
         enriched_items = []
+        failed_endpoints: list[str] = []
         for i, item in enumerate(items):
             if i < len(endpoints) and endpoints[i] in detail_map:
                 # Merge detail data into the item (detail data takes precedence)
                 enriched_item = {**item, **detail_map[endpoints[i]]}
             else:
                 enriched_item = item
+                if i < len(endpoints):
+                    failed_endpoints.append(endpoints[i])
             enriched_items.append(enriched_item)
 
         # Return updated response
         list_response[result_key] = enriched_items
+
+        if failed_endpoints:
+            list_response["_warnings"] = [
+                f"Detail enrichment failed for: {endpoint}"
+                for endpoint in failed_endpoints
+            ]
+
         return list_response
