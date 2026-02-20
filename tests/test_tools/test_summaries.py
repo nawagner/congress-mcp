@@ -164,6 +164,8 @@ def test_strip_html_handles_empty():
 
 
 # --- search_summaries tests ---
+# Use 118th Congress with date filters and bill_type="hr" for reliable results.
+# The API only returns a small window without dates, so date filters are essential.
 
 
 @needs_api_key
@@ -172,8 +174,11 @@ async def test_search_summaries_finds_matches(client: Client):
     result = await client.call_tool(
         "search_summaries",
         {
-            "congress": CURRENT_CONGRESS,
+            "congress": CONGRESS,
             "query": "artificial intelligence",
+            "bill_type": "hr",
+            "from_date": "2024-01-01",
+            "to_date": "2024-12-31",
             "max_matches": 5,
         },
     )
@@ -189,7 +194,11 @@ async def test_search_summaries_finds_matches(client: Client):
 
 @needs_api_key
 async def test_search_summaries_no_matches(client: Client):
-    """search_summaries returns empty results for a nonsense keyword."""
+    """search_summaries returns empty results for a nonsense keyword.
+
+    Uses current congress without dates (small result set) to avoid
+    long pagination when no matches trigger early termination.
+    """
     result = await client.call_tool(
         "search_summaries",
         {
@@ -210,8 +219,11 @@ async def test_search_summaries_case_insensitive(client: Client):
     result = await client.call_tool(
         "search_summaries",
         {
-            "congress": CURRENT_CONGRESS,
+            "congress": CONGRESS,
             "query": "ARTIFICIAL INTELLIGENCE",
+            "bill_type": "hr",
+            "from_date": "2024-01-01",
+            "to_date": "2024-12-31",
             "max_matches": 3,
         },
     )
@@ -221,12 +233,14 @@ async def test_search_summaries_case_insensitive(client: Client):
 
 @needs_api_key
 async def test_search_summaries_without_bill_type(client: Client):
-    """search_summaries works without bill_type filter."""
+    """search_summaries works without bill_type filter (searches all types)."""
     result = await client.call_tool(
         "search_summaries",
         {
-            "congress": CURRENT_CONGRESS,
+            "congress": CONGRESS,
             "query": "artificial intelligence",
+            "from_date": "2024-01-01",
+            "to_date": "2024-12-31",
             "max_matches": 3,
         },
     )
@@ -241,9 +255,11 @@ async def test_search_summaries_max_matches_respected(client: Client):
     result = await client.call_tool(
         "search_summaries",
         {
-            "congress": CURRENT_CONGRESS,
-            "query": "the",
+            "congress": CONGRESS,
+            "query": "health",
             "bill_type": "hr",
+            "from_date": "2024-01-01",
+            "to_date": "2024-12-31",
             "max_matches": 2,
         },
     )
@@ -257,8 +273,11 @@ async def test_search_summaries_includes_bill_info(client: Client):
     result = await client.call_tool(
         "search_summaries",
         {
-            "congress": CURRENT_CONGRESS,
+            "congress": CONGRESS,
             "query": "artificial intelligence",
+            "bill_type": "hr",
+            "from_date": "2024-01-01",
+            "to_date": "2024-12-31",
             "max_matches": 1,
         },
     )
