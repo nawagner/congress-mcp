@@ -48,7 +48,6 @@ async def client():
 
 
 @needs_api_key
-@pytest.mark.xfail(reason="Pre-existing bug: enrich_list_response crashes on list detail data")
 async def test_list_treaties_with_date_filter(client: Client):
     """list_treaties returns results with date range."""
     result = await client.call_tool(
