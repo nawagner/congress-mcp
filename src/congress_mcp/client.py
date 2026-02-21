@@ -68,7 +68,7 @@ class CongressClient:
 
         Raises:
             NotFoundError: Resource not found (404)
-            RateLimitError: Rate limit exceeded (429)
+            RateLimitError: Rate limit exceeded (429) after max_retries attempts
             AuthenticationError: Invalid API key (401/403)
             CongressAPIError: Other API errors
         """
@@ -83,14 +83,34 @@ class CongressClient:
             params["limit"] = min(limit, self.config.max_limit)
         params["offset"] = offset
 
-        logger.debug("GET %s", endpoint)
-        response = await self._client.get(endpoint, params=params)
+        for attempt in range(self.config.max_retries + 1):
+            logger.debug("GET %s (attempt %d/%d)", endpoint, attempt + 1, self.config.max_retries + 1)
+            response = await self._client.get(endpoint, params=params)
+
+            if response.status_code != 429:
+                break
+
+            if attempt < self.config.max_retries:
+                retry_after = response.headers.get("Retry-After")
+                if retry_after is not None:
+                    try:
+                        delay = float(retry_after)
+                    except (ValueError, TypeError):
+                        delay = self.config.retry_base_delay * (2 ** attempt)
+                else:
+                    delay = self.config.retry_base_delay * (2 ** attempt)
+
+                logger.warning(
+                    "Rate limited on %s (attempt %d/%d), retrying in %.1fs",
+                    endpoint, attempt + 1, self.config.max_retries + 1, delay,
+                )
+                await asyncio.sleep(delay)
+            else:
+                logger.warning("Rate limit exceeded on %s after %d attempts", endpoint, attempt + 1)
+                raise RateLimitError()
 
         if response.status_code == 404:
             raise NotFoundError(f"Resource not found: {endpoint}")
-        if response.status_code == 429:
-            logger.warning("Rate limit exceeded on %s", endpoint)
-            raise RateLimitError()
         if response.status_code in (401, 403):
             logger.error("Authentication failed on %s", endpoint)
             raise AuthenticationError()
