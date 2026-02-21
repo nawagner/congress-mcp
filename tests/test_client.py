@@ -73,11 +73,13 @@ class TestCongressClient:
             assert "not found" in str(exc_info.value).lower()
 
     @pytest.mark.asyncio
-    async def test_client_handles_429_rate_limit(self, config: Config) -> None:
-        """429 responses raise RateLimitError."""
+    @patch("congress_mcp.client.asyncio.sleep", new_callable=AsyncMock)
+    async def test_client_handles_429_rate_limit(self, mock_sleep: AsyncMock, config: Config) -> None:
+        """429 responses raise RateLimitError after retries exhausted."""
         mock_response = MagicMock()
         mock_response.status_code = 429
         mock_response.text = "Rate limit exceeded"
+        mock_response.headers = {}
 
         with patch("httpx.AsyncClient") as mock_client_class:
             mock_client = AsyncMock()
@@ -88,6 +90,10 @@ class TestCongressClient:
             async with CongressClient(config) as client:
                 with pytest.raises(RateLimitError):
                     await client.get("/bill/118")
+
+            # 1 initial + 3 retries = 4 total calls
+            assert mock_client.get.call_count == 4
+            assert mock_sleep.call_count == 3
 
     @pytest.mark.asyncio
     async def test_client_handles_401_authentication(self, config: Config) -> None:
@@ -266,11 +272,13 @@ class TestConcurrentDetailFetching:
         assert any("/bill/118/hr/1" in r.message for r in caplog.records)
 
     @pytest.mark.asyncio
-    async def test_safe_get_propagates_rate_limit_error(self, config: Config) -> None:
+    @patch("congress_mcp.client.asyncio.sleep", new_callable=AsyncMock)
+    async def test_safe_get_propagates_rate_limit_error(self, mock_sleep: AsyncMock, config: Config) -> None:
         """RateLimitError is NOT caught and propagates to caller."""
         mock_response = MagicMock()
         mock_response.status_code = 429
         mock_response.text = "Rate limit exceeded"
+        mock_response.headers = {}
 
         with patch("httpx.AsyncClient") as mock_client_class:
             mock_client = AsyncMock()
@@ -399,3 +407,109 @@ class TestConcurrentDetailFetching:
         assert result["bills"][1]["title"] == "A bill"
         # No warnings
         assert "_warnings" not in result
+
+
+class TestRetryBackoff:
+    """Tests for 429 retry with exponential backoff."""
+
+    @pytest.mark.asyncio
+    @patch("congress_mcp.client.asyncio.sleep", new_callable=AsyncMock)
+    async def test_retry_succeeds_after_transient_429(self, mock_sleep: AsyncMock, config: Config) -> None:
+        """Request succeeds after transient 429 responses."""
+        rate_limit_response = MagicMock()
+        rate_limit_response.status_code = 429
+        rate_limit_response.headers = {}
+
+        ok_response = MagicMock()
+        ok_response.status_code = 200
+        ok_response.json.return_value = {"bills": []}
+
+        with patch("httpx.AsyncClient") as mock_client_class:
+            mock_client = AsyncMock()
+            mock_client.get = AsyncMock(
+                side_effect=[rate_limit_response, rate_limit_response, ok_response]
+            )
+            mock_client.aclose = AsyncMock()
+            mock_client_class.return_value = mock_client
+
+            async with CongressClient(config) as client:
+                result = await client.get("/bill/118")
+
+            assert result == {"bills": []}
+            assert mock_client.get.call_count == 3
+            assert mock_sleep.call_count == 2
+            mock_sleep.assert_any_call(1.0)
+            mock_sleep.assert_any_call(2.0)
+
+    @pytest.mark.asyncio
+    @patch("congress_mcp.client.asyncio.sleep", new_callable=AsyncMock)
+    async def test_retry_respects_retry_after_header(self, mock_sleep: AsyncMock, config: Config) -> None:
+        """Retry-After header value is used as delay."""
+        rate_limit_response = MagicMock()
+        rate_limit_response.status_code = 429
+        rate_limit_response.headers = {"Retry-After": "5"}
+
+        ok_response = MagicMock()
+        ok_response.status_code = 200
+        ok_response.json.return_value = {"bills": []}
+
+        with patch("httpx.AsyncClient") as mock_client_class:
+            mock_client = AsyncMock()
+            mock_client.get = AsyncMock(
+                side_effect=[rate_limit_response, ok_response]
+            )
+            mock_client.aclose = AsyncMock()
+            mock_client_class.return_value = mock_client
+
+            async with CongressClient(config) as client:
+                result = await client.get("/bill/118")
+
+            assert result == {"bills": []}
+            mock_sleep.assert_called_once_with(5.0)
+
+    @pytest.mark.asyncio
+    @patch("congress_mcp.client.asyncio.sleep", new_callable=AsyncMock)
+    async def test_no_retry_on_non_429(self, mock_sleep: AsyncMock, config: Config) -> None:
+        """Non-429 errors are not retried."""
+        mock_response = MagicMock()
+        mock_response.status_code = 404
+        mock_response.text = "Not found"
+
+        with patch("httpx.AsyncClient") as mock_client_class:
+            mock_client = AsyncMock()
+            mock_client.get = AsyncMock(return_value=mock_response)
+            mock_client.aclose = AsyncMock()
+            mock_client_class.return_value = mock_client
+
+            async with CongressClient(config) as client:
+                with pytest.raises(NotFoundError):
+                    await client.get("/bill/999/hr/99999")
+
+            assert mock_client.get.call_count == 1
+            mock_sleep.assert_not_called()
+
+    @pytest.mark.asyncio
+    @patch("congress_mcp.client.asyncio.sleep", new_callable=AsyncMock)
+    async def test_retry_with_zero_max_retries(self, mock_sleep: AsyncMock) -> None:
+        """With max_retries=0, 429 raises immediately with no sleep."""
+        no_retry_config = Config(
+            api_key="test_key",
+            max_retries=0,
+        )
+
+        mock_response = MagicMock()
+        mock_response.status_code = 429
+        mock_response.headers = {}
+
+        with patch("httpx.AsyncClient") as mock_client_class:
+            mock_client = AsyncMock()
+            mock_client.get = AsyncMock(return_value=mock_response)
+            mock_client.aclose = AsyncMock()
+            mock_client_class.return_value = mock_client
+
+            async with CongressClient(no_retry_config) as client:
+                with pytest.raises(RateLimitError):
+                    await client.get("/bill/118")
+
+            assert mock_client.get.call_count == 1
+            mock_sleep.assert_not_called()
