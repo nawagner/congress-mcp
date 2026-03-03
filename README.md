@@ -1,6 +1,7 @@
 # Congress.gov MCP Server
 
 A Model Context Protocol (MCP) server providing comprehensive access to the official [Congress.gov API (v3)](https://api.congress.gov). Built with [FastMCP](https://gofastmcp.com).
+A write-up of how this was made is available [here](https://alearningjourney.substack.com/p/how-i-built-a-congress-mcp-server).
 
 ## Features
 
