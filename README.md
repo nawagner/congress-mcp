@@ -124,8 +124,8 @@ fastmcp run src/congress_mcp/server.py
 ### Bills
 
 ```
-# List recent bills from the 118th Congress
-list_bills(congress=118, limit=10)
+# List the most recently introduced bills from the 118th Congress
+list_bills(congress=118, sort="introducedDate+desc", limit=10)
 
 # Get a specific bill
 get_bill(congress=118, bill_type="hr", bill_number=1)
