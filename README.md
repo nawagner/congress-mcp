@@ -5,7 +5,7 @@ A write-up of how this was made is available [here](https://alearningjourney.sub
 
 ## Features
 
-- **85 Tools** covering all Congress.gov API endpoints
+- **86 Tools** covering all Congress.gov API endpoints
 - **8 Resources** for reference data and direct access
 - Full async support for efficient concurrent requests
 - Auto-pagination for large result sets
@@ -126,6 +126,13 @@ fastmcp run src/congress_mcp/server.py
 ```
 # List recent bills from the 118th Congress
 list_bills(congress=118, limit=10)
+
+# Search bills by title keyword and/or policy area (filters client-side)
+search_bills(congress=118, query="veteran", bill_type="hr", max_matches=10)
+
+# Policy area search costs one request per bill checked; max_scan caps it
+search_bills(congress=118, policy_area="Health", query="Medicare", bill_type="hr",
+             max_scan=100)
 
 # Get a specific bill
 get_bill(congress=118, bill_type="hr", bill_number=1)
