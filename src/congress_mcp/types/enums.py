@@ -29,6 +29,16 @@ class BillType(str, Enum):
 BillTypeLiteral = Literal["hr", "s", "hjres", "sjres", "hconres", "sconres", "hres", "sres"]
 
 
+# Sort values for the bill list endpoints, in the ``+`` form they take in API
+# URLs. The API itself documents them with a space (``updateDate desc``).
+BillSortLiteral = Literal[
+    "updateDate+asc",
+    "updateDate+desc",
+    "introducedDate+asc",
+    "introducedDate+desc",
+]
+
+
 class AmendmentType(str, Enum):
     """Amendment type codes.
 

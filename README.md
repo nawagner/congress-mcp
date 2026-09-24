@@ -124,8 +124,8 @@ fastmcp run src/congress_mcp/server.py
 ### Bills
 
 ```
-# List recent bills from the 118th Congress
-list_bills(congress=118, limit=10)
+# List the most recently introduced bills from the 118th Congress
+list_bills(congress=118, sort="introducedDate+desc", limit=10)
 
 # Search bills by title keyword and/or policy area (filters client-side)
 search_bills(congress=118, query="veteran", bill_type="hr", max_matches=10)

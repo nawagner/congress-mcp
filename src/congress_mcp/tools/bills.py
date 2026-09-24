@@ -8,7 +8,7 @@ from pydantic import Field
 from congress_mcp.annotations import READONLY_ANNOTATIONS
 from congress_mcp.client import CongressClient
 from congress_mcp.config import Config
-from congress_mcp.types.enums import BillTypeLiteral, PolicyAreaLiteral
+from congress_mcp.types.enums import BillSortLiteral, BillTypeLiteral, PolicyAreaLiteral
 
 try:
     from fastmcp import FastMCP
@@ -157,6 +157,32 @@ class _BillSearch:
         return result
 
 
+_FROM_DATE_DESCRIPTION = (
+    "Only bills last updated on or after this date (YYYY-MM-DD). "
+    "Filters by update date, not introduced date."
+)
+_TO_DATE_DESCRIPTION = (
+    "Only bills last updated on or before this date (YYYY-MM-DD). "
+    "Filters by update date, not introduced date."
+)
+_SORT_DESCRIPTION = (
+    "Sort order. updateDate+desc or updateDate+asc sorts by last update date. "
+    "introducedDate+desc or introducedDate+asc sorts by introduced date "
+    "(bills without an introduced date come last). "
+    "Use introducedDate+desc to get the most recently introduced bills."
+)
+
+
+def _api_sort(sort: str) -> str:
+    """Convert a client sort value to the form the Congress.gov API documents.
+
+    The API documents ``updateDate desc`` with a space. httpx encodes a space
+    as ``+``, so this sends ``sort=updateDate+desc`` as upstream shows it.
+    Passing ``updateDate+desc`` unchanged would send ``sort=updateDate%2Bdesc``.
+    """
+    return sort.replace("+", " ")
+
+
 def register_bill_tools(mcp: "FastMCP", config: Config) -> None:
     """Register all bill-related tools with the MCP server."""
 
@@ -167,20 +193,18 @@ def register_bill_tools(mcp: "FastMCP", config: Config) -> None:
             int | None, Field(description="Maximum results to return (1-250)", ge=1, le=250)
         ] = None,
         offset: Annotated[int, Field(description="Starting position for pagination", ge=0)] = 0,
-        from_date: Annotated[
-            str | None, Field(description="Filter by update date start (YYYY-MM-DD)")
-        ] = None,
-        to_date: Annotated[
-            str | None, Field(description="Filter by update date end (YYYY-MM-DD)")
-        ] = None,
-        sort: Annotated[
-            str | None, Field(description="Sort order: updateDate+asc or updateDate+desc")
-        ] = None,
+        from_date: Annotated[str | None, Field(description=_FROM_DATE_DESCRIPTION)] = None,
+        to_date: Annotated[str | None, Field(description=_TO_DATE_DESCRIPTION)] = None,
+        sort: Annotated[BillSortLiteral | None, Field(description=_SORT_DESCRIPTION)] = None,
     ) -> dict[str, Any]:
         """List all bills for a specific Congress.
 
         Returns bills with full details including sponsors, cosponsors,
         committees, actions, and text versions.
+
+        from_date and to_date filter on when a bill was last updated, not
+        when it was introduced. For the most recently introduced bills, use
+        sort="introducedDate+desc".
         """
         async with CongressClient(config) as client:
             params: dict[str, Any] = {}
@@ -189,7 +213,7 @@ def register_bill_tools(mcp: "FastMCP", config: Config) -> None:
             if to_date:
                 params["toDateTime"] = f"{to_date}T23:59:59Z"
             if sort:
-                params["sort"] = sort
+                params["sort"] = _api_sort(sort)
 
             response = await client.get(
                 f"/bill/{congress}",
@@ -219,15 +243,9 @@ def register_bill_tools(mcp: "FastMCP", config: Config) -> None:
                 description="REQUIRED bill type string. Must be one of: hr (House Bill), s (Senate Bill), hjres (House Joint Resolution), sjres (Senate Joint Resolution), hconres (House Concurrent Resolution), sconres (Senate Concurrent Resolution), hres (House Simple Resolution), sres (Senate Simple Resolution). Example: 'hr' for H.R. bills"
             ),
         ],
-        from_date: Annotated[
-            str | None, Field(description="Filter by update date start (YYYY-MM-DD)")
-        ] = None,
-        to_date: Annotated[
-            str | None, Field(description="Filter by update date end (YYYY-MM-DD)")
-        ] = None,
-        sort: Annotated[
-            str | None, Field(description="Sort order: updateDate+asc or updateDate+desc")
-        ] = None,
+        from_date: Annotated[str | None, Field(description=_FROM_DATE_DESCRIPTION)] = None,
+        to_date: Annotated[str | None, Field(description=_TO_DATE_DESCRIPTION)] = None,
+        sort: Annotated[BillSortLiteral | None, Field(description=_SORT_DESCRIPTION)] = None,
         limit: Annotated[
             int | None, Field(description="Maximum results to return (1-250)", ge=1, le=250)
         ] = None,
@@ -237,6 +255,10 @@ def register_bill_tools(mcp: "FastMCP", config: Config) -> None:
 
         Returns bills with full details including sponsors, cosponsors,
         committees, actions, and text versions.
+
+        from_date and to_date filter on when a bill was last updated, not
+        when it was introduced. For the most recently introduced bills, use
+        sort="introducedDate+desc".
 
         Bill types:
         - hr: House Bill
@@ -255,7 +277,7 @@ def register_bill_tools(mcp: "FastMCP", config: Config) -> None:
             if to_date:
                 params["toDateTime"] = f"{to_date}T23:59:59Z"
             if sort:
-                params["sort"] = sort
+                params["sort"] = _api_sort(sort)
             response = await client.get(
                 f"/bill/{congress}/{bill_type}",
                 params=params,
